@@ -1,0 +1,412 @@
+{
+  "name": "paredit",
+  "displayName": "Paredit",
+  "description": "Structural editing with paredit commands for any language",
+  "version": "0.1.0",
+  "publisher": "paredit",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Paredit",
+      "properties": {
+        "paredit.enabledLanguages": {
+          "type": "array",
+          "default": [
+            "javascript",
+            "typescript",
+            "json",
+            "lisp",
+            "scheme",
+            "racket"
+          ],
+          "description": "Language IDs where paredit commands are active"
+        },
+        "paredit.enabledFileExtensions": {
+          "type": "array",
+          "default": [],
+          "description": "File extensions where paredit commands are active (e.g., ['.lisp', '.scm'])"
+        },
+        "paredit.vimMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable vim-compatible keybindings (H, L, etc.)"
+        },
+        "paredit.customDelimiters": {
+          "type": "object",
+          "default": {},
+          "description": "Language-specific delimiter pairs (e.g., {\"html\": [\"<\", \">\"]})"
+        },
+        "paredit.multicursor": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable multi-cursor support for paredit commands"
+        },
+        "paredit.killAlsoCutsToClipboard": {
+          "type": "boolean",
+          "default": true,
+          "description": "When true, kill commands also copy to clipboard"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "paredit.forwardSexp",
+        "title": "Paredit: Forward Sexp"
+      },
+      {
+        "command": "paredit.backwardSexp",
+        "title": "Paredit: Backward Sexp"
+      },
+      {
+        "command": "paredit.forwardUpSexp",
+        "title": "Paredit: Forward Up Sexp"
+      },
+      {
+        "command": "paredit.backwardUpSexp",
+        "title": "Paredit: Backward Up Sexp"
+      },
+      {
+        "command": "paredit.forwardDownSexp",
+        "title": "Paredit: Forward Down Sexp"
+      },
+      {
+        "command": "paredit.backwardDownSexp",
+        "title": "Paredit: Backward Down Sexp"
+      },
+      {
+        "command": "paredit.forwardSexpOrUp",
+        "title": "Paredit: Forward Sexp or Up"
+      },
+      {
+        "command": "paredit.backwardSexpOrUp",
+        "title": "Paredit: Backward Sexp or Up"
+      },
+      {
+        "command": "paredit.selectCurrentForm",
+        "title": "Paredit: Select Current Form"
+      },
+      {
+        "command": "paredit.selectForwardSexp",
+        "title": "Paredit: Select Forward Sexp"
+      },
+      {
+        "command": "paredit.selectBackwardSexp",
+        "title": "Paredit: Select Backward Sexp"
+      },
+      {
+        "command": "paredit.selectForwardUpSexp",
+        "title": "Paredit: Select Forward Up Sexp"
+      },
+      {
+        "command": "paredit.selectBackwardUpSexp",
+        "title": "Paredit: Select Backward Up Sexp"
+      },
+      {
+        "command": "paredit.selectForwardDownSexp",
+        "title": "Paredit: Select Forward Down Sexp"
+      },
+      {
+        "command": "paredit.selectBackwardDownSexp",
+        "title": "Paredit: Select Backward Down Sexp"
+      },
+      {
+        "command": "paredit.expandSelection",
+        "title": "Paredit: Expand Selection"
+      },
+      {
+        "command": "paredit.contractSelection",
+        "title": "Paredit: Contract Selection"
+      },
+      {
+        "command": "paredit.selectDefun",
+        "title": "Paredit: Select Top-Level Form"
+      },
+      {
+        "command": "paredit.slurpForward",
+        "title": "Paredit: Slurp Forward"
+      },
+      {
+        "command": "paredit.slurpBackward",
+        "title": "Paredit: Slurp Backward"
+      },
+      {
+        "command": "paredit.barfForward",
+        "title": "Paredit: Barf Forward"
+      },
+      {
+        "command": "paredit.barfBackward",
+        "title": "Paredit: Barf Backward"
+      },
+      {
+        "command": "paredit.raiseSexp",
+        "title": "Paredit: Raise Sexp"
+      },
+      {
+        "command": "paredit.spliceSexp",
+        "title": "Paredit: Splice Sexp"
+      },
+      {
+        "command": "paredit.wrapWithParen",
+        "title": "Paredit: Wrap with Parentheses"
+      },
+      {
+        "command": "paredit.wrapWithBracket",
+        "title": "Paredit: Wrap with Brackets"
+      },
+      {
+        "command": "paredit.wrapWithBrace",
+        "title": "Paredit: Wrap with Braces"
+      },
+      {
+        "command": "paredit.transposeSexp",
+        "title": "Paredit: Transpose Sexp"
+      },
+      {
+        "command": "paredit.killForwardSexp",
+        "title": "Paredit: Kill Forward Sexp"
+      },
+      {
+        "command": "paredit.killBackwardSexp",
+        "title": "Paredit: Kill Backward Sexp"
+      },
+      {
+        "command": "paredit.killSexp",
+        "title": "Paredit: Kill Sexp"
+      },
+      {
+        "command": "paredit.copySexp",
+        "title": "Paredit: Copy Sexp"
+      },
+      {
+        "command": "paredit.copyForwardSexp",
+        "title": "Paredit: Copy Forward Sexp"
+      },
+      {
+        "command": "paredit.copyBackwardSexp",
+        "title": "Paredit: Copy Backward Sexp"
+      },
+      {
+        "command": "paredit.killForwardUpSexp",
+        "title": "Paredit: Kill Forward Up Sexp"
+      },
+      {
+        "command": "paredit.killBackwardUpSexp",
+        "title": "Paredit: Kill Backward Up Sexp"
+      },
+      {
+        "command": "paredit.copyForwardUpSexp",
+        "title": "Paredit: Copy Forward Up Sexp"
+      },
+      {
+        "command": "paredit.copyBackwardUpSexp",
+        "title": "Paredit: Copy Backward Up Sexp"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "paredit.forwardSexp",
+        "key": "alt+l",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.backwardSexp",
+        "key": "alt+h",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.forwardUpSexp",
+        "key": "alt+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.backwardUpSexp",
+        "key": "alt+shift+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.forwardDownSexp",
+        "key": "alt+j",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.backwardDownSexp",
+        "key": "alt+shift+j",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.forwardSexpOrUp",
+        "key": "alt+right",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.backwardSexpOrUp",
+        "key": "alt+left",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectCurrentForm",
+        "key": "alt+w",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectForwardSexp",
+        "key": "alt+shift+l",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectBackwardSexp",
+        "key": "alt+shift+h",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectForwardUpSexp",
+        "key": "ctrl+alt+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectBackwardUpSexp",
+        "key": "ctrl+alt+shift+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectForwardDownSexp",
+        "key": "ctrl+alt+j",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectBackwardDownSexp",
+        "key": "ctrl+alt+shift+j",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.expandSelection",
+        "key": "alt+up",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.contractSelection",
+        "key": "alt+down",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.selectDefun",
+        "key": "ctrl+alt+w",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.slurpForward",
+        "key": "alt+shift+.",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.slurpBackward",
+        "key": "ctrl+shift+,",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.barfForward",
+        "key": "alt+shift+,",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.barfBackward",
+        "key": "ctrl+shift+.",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.raiseSexp",
+        "key": "alt+r",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.spliceSexp",
+        "key": "alt+s",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.wrapWithParen",
+        "key": "alt+shift+9",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.wrapWithBracket",
+        "key": "alt+shift+[",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.wrapWithBrace",
+        "key": "alt+shift+{",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.transposeSexp",
+        "key": "alt+t",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.killForwardSexp",
+        "key": "ctrl+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.killBackwardSexp",
+        "key": "ctrl+shift+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.killSexp",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.copySexp",
+        "key": "ctrl+alt+c",
+        "mac": "cmd+alt+c",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.copyForwardSexp",
+        "key": "ctrl+shift+c",
+        "when": "editorTextFocus && paredit.isActive"
+      },
+      {
+        "command": "paredit.copyBackwardSexp",
+        "key": "ctrl+alt+shift+c",
+        "when": "editorTextFocus && paredit.isActive"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "webpack --mode production",
+    "watch": "webpack --mode development --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "eslint": "^8.47.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.1.6",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}

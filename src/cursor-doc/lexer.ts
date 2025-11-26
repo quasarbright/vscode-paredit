@@ -1,0 +1,325 @@
+/**
+ * Generic lexer for structural editing
+ * Tokenizes code into delimiters, whitespace, strings, comments, and identifiers
+ */
+
+export type TokenType =
+  | 'open'       // Opening delimiter: (, [, {
+  | 'close'      // Closing delimiter: ), ], }
+  | 'ws'         // Whitespace (not newline)
+  | 'ws-nl'      // Newline whitespace
+  | 'comment'    // Comments
+  | 'str-inside' // Inside string literal
+  | 'str-start'  // String start delimiter
+  | 'str-end'    // String end delimiter
+  | 'id'         // Identifiers/atoms
+  | 'junk';      // Catch-all for unrecognized characters
+
+export interface Token {
+  type: TokenType;
+  raw: string;
+  offset: number;
+  state: ScannerState;
+}
+
+export interface ScannerState {
+  inString: boolean;
+  stringDelimiter?: string; // Track which quote character started the string
+}
+
+export interface DelimiterPair {
+  open: string;
+  close: string;
+}
+
+export const DEFAULT_DELIMITERS: DelimiterPair[] = [
+  { open: '(', close: ')' },
+  { open: '[', close: ']' },
+  { open: '{', close: '}' }
+];
+
+/**
+ * Scanner class that tokenizes a line of text
+ */
+export class Scanner {
+  private delimiters: DelimiterPair[];
+  private openDelimiters: Set<string>;
+  private closeDelimiters: Set<string>;
+
+  constructor(delimiters: DelimiterPair[] = DEFAULT_DELIMITERS) {
+    this.delimiters = delimiters;
+    this.openDelimiters = new Set(delimiters.map(d => d.open));
+    this.closeDelimiters = new Set(delimiters.map(d => d.close));
+  }
+
+  /**
+   * Process a line and return tokens
+   */
+  processLine(line: string, startState: ScannerState): Token[] {
+    const tokens: Token[] = [];
+    let offset = 0;
+    let state = { ...startState };
+
+    while (offset < line.length) {
+      const char = line[offset];
+      const remaining = line.substring(offset);
+
+      if (state.inString) {
+        // Inside a string literal
+        const token = this.scanString(remaining, offset, state);
+        tokens.push(token);
+        offset += token.raw.length;
+        state = { ...token.state };
+      } else if (char === '"' || char === "'" || char === '`') {
+        // String start
+        tokens.push({
+          type: 'str-start',
+          raw: char,
+          offset,
+          state: { ...state }
+        });
+        state = { inString: true, stringDelimiter: char };
+        offset++;
+      } else if (this.isWhitespace(char)) {
+        // Whitespace
+        const token = this.scanWhitespace(remaining, offset, state);
+        tokens.push(token);
+        offset += token.raw.length;
+      } else if (this.isCommentStart(remaining)) {
+        // Comment - consume rest of line
+        const token = this.scanComment(remaining, offset, state);
+        tokens.push(token);
+        offset += token.raw.length;
+      } else if (this.openDelimiters.has(char)) {
+        // Opening delimiter
+        tokens.push({
+          type: 'open',
+          raw: char,
+          offset,
+          state: { ...state }
+        });
+        offset++;
+      } else if (this.closeDelimiters.has(char)) {
+        // Closing delimiter
+        tokens.push({
+          type: 'close',
+          raw: char,
+          offset,
+          state: { ...state }
+        });
+        offset++;
+      } else {
+        // Identifier or junk
+        const token = this.scanIdentifier(remaining, offset, state);
+        tokens.push(token);
+        offset += token.raw.length;
+      }
+    }
+
+    return tokens;
+  }
+
+  private scanString(text: string, offset: number, state: ScannerState): Token {
+    let i = 0;
+    let escaped = false;
+    const delimiter = state.stringDelimiter || '"';
+
+    while (i < text.length) {
+      const char = text[i];
+
+      if (escaped) {
+        escaped = false;
+        i++;
+        continue;
+      }
+
+      if (char === '\\') {
+        escaped = true;
+        i++;
+        continue;
+      }
+
+      if (char === delimiter) {
+        // Found end of string - if we haven't consumed any characters yet,
+        // return the delimiter itself
+        if (i === 0) {
+          return {
+            type: 'str-end',
+            raw: char,
+            offset,
+            state: { inString: false, stringDelimiter: undefined }
+          };
+        }
+        // Otherwise return the content before the delimiter
+        return {
+          type: 'str-inside',
+          raw: text.substring(0, i),
+          offset,
+          state: { ...state }
+        };
+      }
+
+      i++;
+    }
+
+    // String continues to end of line
+    return {
+      type: 'str-inside',
+      raw: text.substring(0, i),
+      offset,
+      state: { ...state }
+    };
+  }
+
+  private scanWhitespace(text: string, offset: number, state: ScannerState): Token {
+    let i = 0;
+    let hasNewline = false;
+
+    while (i < text.length && this.isWhitespace(text[i])) {
+      if (text[i] === '\n' || text[i] === '\r') {
+        hasNewline = true;
+      }
+      i++;
+    }
+
+    return {
+      type: hasNewline ? 'ws-nl' : 'ws',
+      raw: text.substring(0, i),
+      offset,
+      state: { ...state }
+    };
+  }
+
+  private scanComment(text: string, offset: number, state: ScannerState): Token {
+    // Support multiple comment styles
+    if (text.startsWith('//')) {
+      // Line comment - consume rest of line
+      return {
+        type: 'comment',
+        raw: text,
+        offset,
+        state: { ...state }
+      };
+    } else if (text.startsWith('/*')) {
+      // Block comment
+      const endIndex = text.indexOf('*/');
+      if (endIndex !== -1) {
+        return {
+          type: 'comment',
+          raw: text.substring(0, endIndex + 2),
+          offset,
+          state: { ...state }
+        };
+      } else {
+        // Block comment continues beyond this line
+        return {
+          type: 'comment',
+          raw: text,
+          offset,
+          state: { ...state }
+        };
+      }
+    } else if (text.startsWith(';')) {
+      // Lisp-style comment
+      return {
+        type: 'comment',
+        raw: text,
+        offset,
+        state: { ...state }
+      };
+    } else if (text.startsWith('#')) {
+      // Python/Ruby-style comment
+      return {
+        type: 'comment',
+        raw: text,
+        offset,
+        state: { ...state }
+      };
+    }
+
+    // Shouldn't reach here
+    return {
+      type: 'junk',
+      raw: text[0],
+      offset,
+      state: { ...state }
+    };
+  }
+
+  private scanIdentifier(text: string, offset: number, state: ScannerState): Token {
+    let i = 0;
+
+    // Scan until we hit whitespace, delimiter, or comment
+    while (i < text.length) {
+      const char = text[i];
+      
+      if (this.isWhitespace(char) ||
+          this.openDelimiters.has(char) ||
+          this.closeDelimiters.has(char) ||
+          char === '"' || char === "'" || char === '`' ||
+          this.isCommentStart(text.substring(i))) {
+        break;
+      }
+
+      i++;
+    }
+
+    if (i === 0) {
+      // Single character junk
+      return {
+        type: 'junk',
+        raw: text[0],
+        offset,
+        state: { ...state }
+      };
+    }
+
+    return {
+      type: 'id',
+      raw: text.substring(0, i),
+      offset,
+      state: { ...state }
+    };
+  }
+
+  private isWhitespace(char: string): boolean {
+    return /\s/.test(char);
+  }
+
+  private isCommentStart(text: string): boolean {
+    return text.startsWith('//') ||
+           text.startsWith('/*') ||
+           text.startsWith(';') ||
+           text.startsWith('#');
+  }
+
+  /**
+   * Get the delimiter pair for a given opening delimiter
+   */
+  getMatchingDelimiter(open: string): string | undefined {
+    const pair = this.delimiters.find(d => d.open === open);
+    return pair?.close;
+  }
+
+  /**
+   * Get the opening delimiter for a given closing delimiter
+   */
+  getOpeningDelimiter(close: string): string | undefined {
+    const pair = this.delimiters.find(d => d.close === close);
+    return pair?.open;
+  }
+
+  /**
+   * Check if a character is an opening delimiter
+   */
+  isOpenDelimiter(char: string): boolean {
+    return this.openDelimiters.has(char);
+  }
+
+  /**
+   * Check if a character is a closing delimiter
+   */
+  isCloseDelimiter(char: string): boolean {
+    return this.closeDelimiters.has(char);
+  }
+}
