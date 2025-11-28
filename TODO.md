@@ -1,2 +1,3 @@
 - [ ] get transpose working
 - [ ] make edit tests. Like to test slurp, you give it "(foo| bar) baz" -slurp-> "(foo bar baz|)" where | denotes the cursor. You want these because the current tests are hard to understand, and kiro doesn't write good tests.
+- [ ] vL on open paren doesn't behave correctly. Same with end of line. There is an off by one issue

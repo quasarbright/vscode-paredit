@@ -25,6 +25,7 @@ export interface Token {
 export interface ScannerState {
   inString: boolean;
   stringDelimiter?: string; // Track which quote character started the string
+  openSymmetricDelimiters?: string[]; // Track which symmetric delimiters are currently open
 }
 
 export interface DelimiterPair {
@@ -35,7 +36,8 @@ export interface DelimiterPair {
 export const DEFAULT_DELIMITERS: DelimiterPair[] = [
   { open: '(', close: ')' },
   { open: '[', close: ']' },
-  { open: '{', close: '}' }
+  { open: '{', close: '}' },
+  { open: '"', close: '"' }
 ];
 
 /**
@@ -45,11 +47,15 @@ export class Scanner {
   private delimiters: DelimiterPair[];
   private openDelimiters: Set<string>;
   private closeDelimiters: Set<string>;
+  private symmetricDelimiters: Set<string>; // Delimiters where open === close
 
   constructor(delimiters: DelimiterPair[] = DEFAULT_DELIMITERS) {
     this.delimiters = delimiters;
     this.openDelimiters = new Set(delimiters.map(d => d.open));
     this.closeDelimiters = new Set(delimiters.map(d => d.close));
+    this.symmetricDelimiters = new Set(
+      delimiters.filter(d => d.open === d.close).map(d => d.open)
+    );
   }
 
   /**
@@ -70,16 +76,6 @@ export class Scanner {
         tokens.push(token);
         offset += token.raw.length;
         state = { ...token.state };
-      } else if (char === '"' || char === "'" || char === '`') {
-        // String start
-        tokens.push({
-          type: 'str-start',
-          raw: char,
-          offset,
-          state: { ...state }
-        });
-        state = { inString: true, stringDelimiter: char };
-        offset++;
       } else if (this.isWhitespace(char)) {
         // Whitespace
         const token = this.scanWhitespace(remaining, offset, state);
@@ -90,23 +86,38 @@ export class Scanner {
         const token = this.scanComment(remaining, offset, state);
         tokens.push(token);
         offset += token.raw.length;
-      } else if (this.openDelimiters.has(char)) {
-        // Opening delimiter
+      } else if (this.openDelimiters.has(char) || this.closeDelimiters.has(char)) {
+        // Delimiter - determine if it's open or close
+        const isSymmetric = this.symmetricDelimiters.has(char);
+        const openSymmetric = state.openSymmetricDelimiters || [];
+        
+        let tokenType: 'open' | 'close';
+        let newOpenSymmetric = [...openSymmetric];
+        
+        if (isSymmetric) {
+          // For symmetric delimiters, check if one is already open
+          const openIndex = openSymmetric.lastIndexOf(char);
+          if (openIndex >= 0) {
+            // This closes the most recent open symmetric delimiter
+            tokenType = 'close';
+            newOpenSymmetric.splice(openIndex, 1);
+          } else {
+            // This opens a new symmetric delimiter
+            tokenType = 'open';
+            newOpenSymmetric.push(char);
+          }
+        } else {
+          // For asymmetric delimiters, use the normal logic
+          tokenType = this.openDelimiters.has(char) ? 'open' : 'close';
+        }
+        
         tokens.push({
-          type: 'open',
+          type: tokenType,
           raw: char,
           offset,
-          state: { ...state }
+          state: { ...state, openSymmetricDelimiters: newOpenSymmetric }
         });
-        offset++;
-      } else if (this.closeDelimiters.has(char)) {
-        // Closing delimiter
-        tokens.push({
-          type: 'close',
-          raw: char,
-          offset,
-          state: { ...state }
-        });
+        state = { ...state, openSymmetricDelimiters: newOpenSymmetric };
         offset++;
       } else {
         // Identifier or junk

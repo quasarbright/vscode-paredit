@@ -199,15 +199,20 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
-      expect(delimiters).toEqual(['(', ')', '[', ']', '{', '}']);
+      expect(delimiters).toEqual([
+        { open: '(', close: ')' },
+        { open: '[', close: ']' },
+        { open: '{', close: '}' },
+        { open: '"', close: '"' }
+      ]);
     });
 
     test('should return custom delimiters for specific language', () => {
       const mockGet = jest.fn((key: string, defaultValue: any) => {
         if (key === 'customDelimiters') {
           return {
-            html: ['<', '>'],
-            xml: ['<', '>']
+            html: [{ open: '<', close: '>' }],
+            xml: [{ open: '<', close: '>' }]
           };
         }
         return defaultValue;
@@ -219,14 +224,14 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('html');
 
-      expect(delimiters).toEqual(['<', '>']);
+      expect(delimiters).toEqual([{ open: '<', close: '>' }]);
     });
 
     test('should return default delimiters for language without custom config', () => {
       const mockGet = jest.fn((key: string, defaultValue: any) => {
         if (key === 'customDelimiters') {
           return {
-            html: ['<', '>']
+            html: [{ open: '<', close: '>' }]
           };
         }
         return defaultValue;
@@ -238,7 +243,12 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
-      expect(delimiters).toEqual(['(', ')', '[', ']', '{', '}']);
+      expect(delimiters).toEqual([
+        { open: '(', close: ')' },
+        { open: '[', close: ']' },
+        { open: '{', close: '}' },
+        { open: '"', close: '"' }
+      ]);
     });
   });
 });

@@ -193,6 +193,16 @@ export function backwardSexpOrUpRange(doc: EditableDocument, offset: number): Ra
     return [offset, offset];
   }
   
+  // Check if we're at a closing delimiter - if so, try to move backward first
+  if (token.type === 'close') {
+    // Try to move backward one sexp
+    if (cursor.backwardSexp()) {
+      return [cursor.offsetStart, offset];
+    }
+    // Can't move backward, stay at current position
+    return [offset, offset];
+  }
+  
   // For backward movement, return the range of the current sexp
   const [start, end] = cursor.rangeForCurrentForm(offset);
   
@@ -817,11 +827,14 @@ export async function raiseSexp(doc: EditableDocument): Promise<void> {
     return; // Not in a list
   }
   
-  // Get the parent range
-  const [parentStart, parentEnd] = cursor.rangeForCurrentForm(sel.active);
+  // Get the parent range - use cursor's current position after upList
+  const [parentStart, parentEnd] = cursor.rangeForCurrentForm(cursor.offsetStart);
   
   // Replace the parent with the current sexp
   await doc.changeRange(parentStart, parentEnd, currentText);
+  
+  // Update cursor position to the start of the raised sexp
+  doc.selections = [new (sel.constructor as any)(parentStart, parentStart)];
 }
 
 /**
@@ -861,6 +874,14 @@ export async function spliceSexp(doc: EditableDocument): Promise<void> {
   
   // Replace the entire list with just the content
   await doc.changeRange(openOffset, closeOffset + closeDelim.length, content);
+  
+  // Update cursor position - adjust for removed opening delimiter
+  // If cursor was after the opening delimiter, move it back by the delimiter length
+  let newCursorPos = sel.active;
+  if (sel.active > openOffset) {
+    newCursorPos = sel.active - openDelim.length;
+  }
+  doc.selections = [new (sel.constructor as any)(newCursorPos, newCursorPos)];
 }
 
 /**
@@ -879,6 +900,10 @@ export async function wrapSexp(doc: EditableDocument, open: string = '(', close:
   
   // Wrap it
   await doc.changeRange(start, end, open + text + close);
+  
+  // Update cursor position - move after the wrapped sexp
+  const newCursorPos = start + open.length + text.length;
+  doc.selections = [new (sel.constructor as any)(newCursorPos, newCursorPos)];
 }
 
 // ============================================================================
@@ -895,6 +920,10 @@ export async function killRange(doc: EditableDocument, start: number, end: numbe
   // Copy to clipboard (VS Code API would be used here)
   // For now, just delete
   await doc.deleteRange(start, end);
+  
+  // Update cursor position to the start of the deleted range
+  const sel = doc.selections[0];
+  doc.selections = [new (sel.constructor as any)(start, start)];
 }
 
 /**
@@ -957,25 +986,49 @@ export async function copySexp(doc: EditableDocument): Promise<void> {
  */
 export async function transposeSexp(doc: EditableDocument): Promise<void> {
   const sel = doc.selections[0];
-  const cursor = doc.getTokenCursor(sel.active);
   
-  // Get the current sexp
-  const [currentStart, currentEnd] = cursor.rangeForCurrentForm(sel.active);
+  // Get the cursor and check what we're at
+  let cursor = doc.getTokenCursor(sel.active);
+  let token = cursor.getToken();
+  
+  // If we're on whitespace, move backward to the previous sexp
+  if (token && (token.type === 'ws' || token.type === 'ws-nl')) {
+    if (!cursor.backwardSexp()) {
+      return; // No previous sexp
+    }
+  }
+  
+  // Now get the current sexp
+  const [currentStart, currentEnd] = cursor.rangeForCurrentForm(cursor.offsetStart);
   const currentText = doc.getText(currentStart, currentEnd);
   
-  // Move to the next sexp
+  // Find the next sexp and the whitespace between them
+  // We need to start from currentEnd and move forward
   const nextCursor = doc.getTokenCursor(currentEnd);
-  nextCursor.forwardWhitespace();
   
-  if (!nextCursor.forwardSexp()) {
+  // Make sure we're actually past the current sexp
+  // If the cursor is still at or before currentEnd, move it forward
+  while (nextCursor.offsetStart < currentEnd && nextCursor.next()) {
+    // Keep moving until we're past currentEnd
+  }
+  
+  const wsStart = currentEnd;
+  nextCursor.forwardWhitespace();
+  const wsEnd = nextCursor.offsetStart;
+  const whitespaceBetween = doc.getText(wsStart, wsEnd);
+  
+  // Get the next sexp
+  const [nextStart, nextEnd] = nextCursor.rangeForCurrentForm(nextCursor.offsetStart);
+  const nextText = doc.getText(nextStart, nextEnd);
+  
+  if (!nextText || nextStart === nextEnd) {
     return; // No next sexp
   }
   
-  // Get the next sexp range
-  nextCursor.forwardWhitespace();
-  const nextEnd = nextCursor.offsetStart;
-  const nextText = doc.getText(currentEnd, nextEnd);
+  // Swap them: nextText + whitespace + currentText
+  await doc.changeRange(currentStart, nextEnd, nextText + whitespaceBetween + currentText);
   
-  // Swap them
-  await doc.changeRange(currentStart, nextEnd, nextText.trimStart() + ' ' + currentText);
+  // Update cursor position to after the transposed current sexp
+  const newCursorPos = currentStart + nextText.length + whitespaceBetween.length + currentText.length;
+  doc.selections = [new (sel.constructor as any)(newCursorPos, newCursorPos)];
 }

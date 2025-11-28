@@ -1,0 +1,225 @@
+/**
+ * Test utilities for paredit operations
+ * Provides cursor notation format for easy test writing
+ */
+
+import { LineInputModel } from '../src/cursor-doc/model';
+
+/**
+ * Parse a string with cursor notation ("|") into text and cursor position
+ * Example: "(foo bar|) baz" -> { text: "(foo bar) baz", cursor: 8 }
+ */
+export function parseCursorString(input: string): { text: string; cursor: number } {
+  const cursorIndex = input.indexOf('|');
+  
+  if (cursorIndex === -1) {
+    throw new Error('Cursor notation "|" not found in input string');
+  }
+  
+  const text = input.slice(0, cursorIndex) + input.slice(cursorIndex + 1);
+  return { text, cursor: cursorIndex };
+}
+
+/**
+ * Format text with cursor position into cursor notation string
+ * Example: { text: "(foo bar) baz", cursor: 8 } -> "(foo bar|) baz"
+ */
+export function formatCursorString(text: string, cursor: number): string {
+  if (cursor < 0 || cursor > text.length) {
+    throw new Error(`Cursor position ${cursor} is out of bounds for text of length ${text.length}`);
+  }
+  
+  return text.slice(0, cursor) + '|' + text.slice(cursor);
+}
+
+/**
+ * Mock EditableDocument for testing with cursor notation
+ */
+export class TestDocument {
+  private model: LineInputModel;
+  public _selections: any[];
+  public editor: any = null; // Mock editor
+
+  constructor(text: string, cursor: number = 0) {
+    this.model = new LineInputModel(text);
+    
+    // Create a proper selection constructor
+    const SelectionConstructor = function(this: any, a: number, b: number) {
+      this.anchor = a;
+      this.active = b;
+      this.start = Math.min(a, b);
+      this.end = Math.max(a, b);
+      this.constructor = SelectionConstructor;
+    } as any;
+    
+    this._selections = [new SelectionConstructor(cursor, cursor)];
+  }
+
+  /**
+   * Create a TestDocument from cursor notation string
+   * Example: TestDocument.fromString("(foo bar|) baz")
+   */
+  static fromString(input: string): TestDocument {
+    const { text, cursor } = parseCursorString(input);
+    return new TestDocument(text, cursor);
+  }
+
+  /**
+   * Get the current state as a cursor notation string
+   */
+  toString(): string {
+    const cursor = this._selections[0].active;
+    const fullText = this.model.getText(0, this.model.getLength());
+    return formatCursorString(fullText, cursor);
+  }
+
+  /**
+   * Get the text content
+   */
+  getText(start?: number, end?: number): string {
+    if (start === undefined) {
+      return this.model.getText(0, this.model.getLength());
+    }
+    if (end === undefined) {
+      end = this.model.getLength();
+    }
+    return this.model.getText(start, end);
+  }
+
+  /**
+   * Get cursor position
+   */
+  get cursor(): number {
+    return this._selections[0].active;
+  }
+
+  /**
+   * Set cursor position
+   */
+  set cursor(pos: number) {
+    this._selections = [{
+      anchor: pos,
+      active: pos,
+      start: pos,
+      end: pos,
+      constructor: this._selections[0].constructor
+    }];
+  }
+
+  get selections() {
+    return this._selections;
+  }
+
+  set selections(sels: any[]) {
+    this._selections = sels;
+  }
+
+  getTokenCursor(offset: number = 0) {
+    return this.model.getTokenCursor(offset);
+  }
+
+  getModel(): LineInputModel {
+    return this.model;
+  }
+
+  convertSelections(sels: any[]): any[] {
+    return sels;
+  }
+
+  offsetToPosition(offset: number): any {
+    return { offset };
+  }
+
+  getLength(): number {
+    return this.model.getLength();
+  }
+
+  async changeRange(start: number, end: number, text: string): Promise<void> {
+    // Simple implementation for testing
+    const before = this.model.getText(0, start);
+    const after = this.model.getText(end, this.model.getLength());
+    const newText = before + text + after;
+    
+    // Recreate the model with new text
+    this.model = new LineInputModel(newText);
+  }
+
+  async deleteRange(start: number, end: number): Promise<void> {
+    await this.changeRange(start, end, '');
+  }
+
+  async edit(_edits: any[], _options: any = {}): Promise<boolean> {
+    // Simple mock implementation
+    return true;
+  }
+
+  async insertString(offset: number, text: string): Promise<boolean> {
+    const before = this.model.getText(0, offset);
+    const after = this.model.getText(offset, this.model.getLength());
+    const newText = before + text + after;
+    this.model = new LineInputModel(newText);
+    return true;
+  }
+}
+
+/**
+ * Test helper to verify paredit operations
+ * 
+ * @example
+ * testParedit(
+ *   "(foo bar|) baz",
+ *   doc => forwardSexpRange(doc, doc.cursor),
+ *   "(foo bar) baz|"
+ * );
+ */
+export function testParedit(
+  startState: string,
+  operation: (doc: TestDocument) => [number, number] | void,
+  expectedEndState: string
+): void {
+  const doc = TestDocument.fromString(startState);
+  const result = operation(doc);
+  
+  if (result) {
+    // If operation returns a range, move cursor to the end of the range
+    const [_, end] = result;
+    doc.cursor = end;
+  }
+  
+  const actualEndState = doc.toString();
+  
+  if (actualEndState !== expectedEndState) {
+    throw new Error(
+      `Expected: ${expectedEndState}\n` +
+      `Actual:   ${actualEndState}`
+    );
+  }
+}
+
+/**
+ * Test helper for async paredit operations (like slurp, barf, etc.)
+ * 
+ * @example
+ * await testPareditAsync(
+ *   "(foo bar|) baz",
+ *   async doc => await slurpSexpForward(doc),
+ *   "(foo bar baz|)"
+ * );
+ */
+export async function testPareditAsync(
+  startState: string,
+  operation: (doc: TestDocument) => Promise<void>,
+  expectedEndState: string
+): Promise<void> {
+  const doc = TestDocument.fromString(startState);
+  await operation(doc);
+  
+  const actualEndState = doc.toString();
+  
+  if (actualEndState !== expectedEndState) {
+    throw new Error(
+      `Expected: ${expectedEndState}\n` +
+      `Actual:   ${actualEndState}`
+    );
+  }
+}

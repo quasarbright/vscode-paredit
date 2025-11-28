@@ -43,7 +43,7 @@
         "paredit.customDelimiters": {
           "type": "object",
           "default": {},
-          "description": "Language-specific delimiter pairs (e.g., {\"html\": [\"<\", \">\"]})"
+          "description": "Language-specific delimiter pairs. Example: {\"html\": [{\"open\": \"<\", \"close\": \">\"}, {\"open\": \"(\", \"close\": \")\"}]}. Default delimiters are: (), [], {}, and \"\"."
         },
         "paredit.multicursor": {
           "type": "boolean",

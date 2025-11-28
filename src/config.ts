@@ -1,15 +1,30 @@
 import * as vscode from 'vscode';
 
+export interface DelimiterPair {
+  open: string;
+  close: string;
+}
+
 export interface PareditConfig {
   enabledLanguages: string[];
   enabledFileExtensions: string[];
-  customDelimiters: Record<string, string[]>;
+  customDelimiters: Record<string, DelimiterPair[]>;
   vimMode: boolean;
   multicursor: boolean;
   killAlsoCutsToClipboard: boolean;
 }
 
 let configChangeListeners: Array<(config: PareditConfig) => void> = [];
+
+/**
+ * Default delimiters used when no custom configuration is provided
+ */
+export const DEFAULT_DELIMITERS: DelimiterPair[] = [
+  { open: '(', close: ')' },
+  { open: '[', close: ']' },
+  { open: '{', close: '}' },
+  { open: '"', close: '"' }
+];
 
 /**
  * Get the current paredit configuration
@@ -27,7 +42,7 @@ export function getConfig(): PareditConfig {
       'racket'
     ]),
     enabledFileExtensions: config.get<string[]>('enabledFileExtensions', []),
-    customDelimiters: config.get<Record<string, string[]>>('customDelimiters', {}),
+    customDelimiters: config.get<Record<string, DelimiterPair[]>>('customDelimiters', {}),
     vimMode: config.get<boolean>('vimMode', true),
     multicursor: config.get<boolean>('multicursor', false),
     killAlsoCutsToClipboard: config.get<boolean>('killAlsoCutsToClipboard', true)
@@ -57,7 +72,7 @@ export function isLanguageEnabled(document: vscode.TextDocument): boolean {
 /**
  * Get delimiter configuration for a specific language
  */
-export function getDelimitersForLanguage(languageId: string): string[] {
+export function getDelimitersForLanguage(languageId: string): DelimiterPair[] {
   const config = getConfig();
   
   // Return custom delimiters if defined for this language
@@ -66,7 +81,7 @@ export function getDelimitersForLanguage(languageId: string): string[] {
   }
   
   // Return default delimiters
-  return ['(', ')', '[', ']', '{', '}'];
+  return DEFAULT_DELIMITERS;
 }
 
 /**
