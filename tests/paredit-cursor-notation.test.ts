@@ -780,4 +780,103 @@ describe('Paredit with Cursor Notation', () => {
       expect(doc.toString()).toBe('  (baz boo)\n   (foo bar)|');
     })
   });
+
+  describe('Multi-cursor Support', () => {
+    describe('Range operations (work with multi-cursor)', () => {
+      test('forwardSexpRange - multiple cursors move forward independently', () => {
+        const doc = TestDocument.fromString('|foo bar |baz qux');
+        
+        // Move both cursors forward
+        const newSelections = doc.selections.map(sel => {
+          const [_, end] = forwardSexpRange(doc as any, sel.active);
+          return { ...sel, active: end, start: Math.min(sel.anchor, end), end: Math.max(sel.anchor, end) };
+        });
+        doc.selections = newSelections;
+        
+        expect(doc.toString()).toBe('foo| bar baz| qux');
+      });
+
+      test('forwardSexpRange - multiple cursors in nested structures', () => {
+        const doc = TestDocument.fromString('(|foo bar) (|baz qux)');
+        
+        const newSelections = doc.selections.map(sel => {
+          const [_, end] = forwardSexpRange(doc as any, sel.active);
+          return { ...sel, active: end, start: Math.min(sel.anchor, end), end: Math.max(sel.anchor, end) };
+        });
+        doc.selections = newSelections;
+        
+        expect(doc.toString()).toBe('(foo| bar) (baz| qux)');
+      });
+
+      test('backwardSexpRange - multiple cursors move backward independently', () => {
+        const doc = TestDocument.fromString('foo bar| baz qux|');
+        
+        const newSelections = doc.selections.map(sel => {
+          const [start, _] = backwardSexpRange(doc as any, sel.active);
+          return { ...sel, active: start, start: Math.min(sel.anchor, start), end: Math.max(sel.anchor, start) };
+        });
+        doc.selections = newSelections;
+        
+        expect(doc.toString()).toBe('foo |bar baz |qux');
+      });
+    });
+
+    describe('Selection operations (already support multi-cursor)', () => {
+      test('selectCurrentForm - multiple cursors select their forms', () => {
+        const doc = TestDocument.fromString('(foo |bar) (baz |qux)');
+        selectCurrentForm(doc as any);
+        
+        expect(doc.selections.length).toBe(2);
+        expect(doc.selections[0].start).toBe(0);
+        expect(doc.selections[0].end).toBe(9);
+        expect(doc.selections[1].start).toBe(10);
+        expect(doc.selections[1].end).toBe(19);
+      });
+
+      test('selectForwardSexp - multiple cursors extend selection forward', () => {
+        const doc = TestDocument.fromString('|foo bar |baz qux');
+        selectForwardSexp(doc as any);
+        
+        expect(doc.selections.length).toBe(2);
+        expect(doc.selections[0].anchor).toBe(0);
+        expect(doc.selections[0].active).toBe(3);
+        expect(doc.selections[1].anchor).toBe(8);
+        expect(doc.selections[1].active).toBe(11);
+      });
+
+      test('selectBackwardSexp - multiple cursors extend selection backward', () => {
+        const doc = TestDocument.fromString('foo bar| baz qux|');
+        selectBackwardSexp(doc as any);
+        
+        expect(doc.selections.length).toBe(2);
+        expect(doc.selections[0].anchor).toBe(7);
+        expect(doc.selections[0].active).toBe(4);
+        expect(doc.selections[1].anchor).toBe(15);
+        expect(doc.selections[1].active).toBe(12);
+      });
+    });
+
+    // Note: Mutation operations (slurp, barf, raise, etc.) currently only operate on
+    // the first cursor. Full multi-cursor support for these operations requires
+    // handling conflicts when multiple cursors try to modify overlapping regions.
+    // These tests document the current single-cursor behavior.
+    
+    describe('Mutation operations (currently single-cursor only)', () => {
+      test('slurpSexpForward - operates on first cursor only', async () => {
+        const doc = TestDocument.fromString('(foo|) bar (baz|) qux');
+        await slurpSexpForward(doc as any);
+        // Only first cursor's operation is performed
+        // Second cursor position is preserved but not used
+        expect(doc.getText()).toBe('(foo bar) (baz) qux');
+      });
+
+      test('transposeSexp - operates on first cursor only', async () => {
+        const doc = TestDocument.fromString('|foo bar |baz qux');
+        await transposeSexp(doc as any);
+        // Only first cursor's operation is performed
+        // Second cursor position is preserved but not used
+        expect(doc.getText()).toBe('bar foo baz qux');
+      });
+    });
+  });
 });

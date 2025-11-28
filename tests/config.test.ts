@@ -40,14 +40,13 @@ describe('Configuration Manager', () => {
         'javascript',
         'typescript',
         'json',
+        'clojure',
         'lisp',
         'scheme',
         'racket'
       ]);
       expect(config.enabledFileExtensions).toEqual([]);
       expect(config.customDelimiters).toEqual({});
-      expect(config.vimMode).toBe(true);
-      expect(config.multicursor).toBe(false);
       expect(config.killAlsoCutsToClipboard).toBe(true);
     });
 
@@ -56,8 +55,6 @@ describe('Configuration Manager', () => {
         enabledLanguages: ['python', 'ruby'],
         enabledFileExtensions: ['.py', '.rb'],
         customDelimiters: { python: ['[', ']'] },
-        vimMode: false,
-        multicursor: true,
         killAlsoCutsToClipboard: false
       };
 
@@ -66,8 +63,6 @@ describe('Configuration Manager', () => {
           'enabledLanguages': customConfig.enabledLanguages,
           'enabledFileExtensions': customConfig.enabledFileExtensions,
           'customDelimiters': customConfig.customDelimiters,
-          'vimMode': customConfig.vimMode,
-          'multicursor': customConfig.multicursor,
           'killAlsoCutsToClipboard': customConfig.killAlsoCutsToClipboard
         };
         return configMap[key];
@@ -82,8 +77,6 @@ describe('Configuration Manager', () => {
       expect(config.enabledLanguages).toEqual(['python', 'ruby']);
       expect(config.enabledFileExtensions).toEqual(['.py', '.rb']);
       expect(config.customDelimiters).toEqual({ python: ['[', ']'] });
-      expect(config.vimMode).toBe(false);
-      expect(config.multicursor).toBe(true);
       expect(config.killAlsoCutsToClipboard).toBe(false);
     });
   });

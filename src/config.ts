@@ -9,8 +9,6 @@ export interface PareditConfig {
   enabledLanguages: string[];
   enabledFileExtensions: string[];
   customDelimiters: Record<string, DelimiterPair[]>;
-  vimMode: boolean;
-  multicursor: boolean;
   killAlsoCutsToClipboard: boolean;
 }
 
@@ -37,14 +35,13 @@ export function getConfig(): PareditConfig {
       'javascript',
       'typescript',
       'json',
+      'clojure',
       'lisp',
       'scheme',
       'racket'
     ]),
     enabledFileExtensions: config.get<string[]>('enabledFileExtensions', []),
     customDelimiters: config.get<Record<string, DelimiterPair[]>>('customDelimiters', {}),
-    vimMode: config.get<boolean>('vimMode', true),
-    multicursor: config.get<boolean>('multicursor', false),
     killAlsoCutsToClipboard: config.get<boolean>('killAlsoCutsToClipboard', true)
   };
 }

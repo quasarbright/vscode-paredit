@@ -24,31 +24,22 @@
             "javascript",
             "typescript",
             "json",
+            "clojure",
             "lisp",
             "scheme",
             "racket"
           ],
-          "description": "Language IDs where paredit commands are active"
+          "description": "Language IDs where paredit commands are active. Default: javascript, typescript, json, clojure, lisp, scheme, racket"
         },
         "paredit.enabledFileExtensions": {
           "type": "array",
           "default": [],
-          "description": "File extensions where paredit commands are active (e.g., ['.lisp', '.scm'])"
-        },
-        "paredit.vimMode": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable vim-compatible keybindings (H, L, etc.)"
+          "description": "File extensions where paredit commands are active (e.g., ['.lisp', '.scm']). Default: none (uses language IDs only)"
         },
         "paredit.customDelimiters": {
           "type": "object",
           "default": {},
           "description": "Language-specific delimiter pairs. Example: {\"html\": [{\"open\": \"<\", \"close\": \">\"}, {\"open\": \"(\", \"close\": \")\"}]}. Default delimiters are: (), [], {}, and \"\"."
-        },
-        "paredit.multicursor": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable multi-cursor support for paredit commands"
         },
         "paredit.killAlsoCutsToClipboard": {
           "type": "boolean",

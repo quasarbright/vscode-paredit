@@ -6,30 +6,51 @@
 import { LineInputModel } from '../src/cursor-doc/model';
 
 /**
- * Parse a string with cursor notation ("|") into text and cursor position
- * Example: "(foo bar|) baz" -> { text: "(foo bar) baz", cursor: 8 }
+ * Parse a string with cursor notation ("|") into text and cursor position(s)
+ * Example: "(foo bar|) baz" -> { text: "(foo bar) baz", cursors: [8] }
+ * Example: "(|foo) (|bar)" -> { text: "(foo) (bar)", cursors: [1, 7] }
  */
-export function parseCursorString(input: string): { text: string; cursor: number } {
-  const cursorIndex = input.indexOf('|');
+export function parseCursorString(input: string): { text: string; cursor: number; cursors: number[] } {
+  const cursors: number[] = [];
+  let text = '';
+  let offset = 0;
   
-  if (cursorIndex === -1) {
+  for (let i = 0; i < input.length; i++) {
+    if (input[i] === '|') {
+      cursors.push(offset);
+    } else {
+      text += input[i];
+      offset++;
+    }
+  }
+  
+  if (cursors.length === 0) {
     throw new Error('Cursor notation "|" not found in input string');
   }
   
-  const text = input.slice(0, cursorIndex) + input.slice(cursorIndex + 1);
-  return { text, cursor: cursorIndex };
+  return { text, cursor: cursors[0], cursors };
 }
 
 /**
- * Format text with cursor position into cursor notation string
+ * Format text with cursor position(s) into cursor notation string
  * Example: { text: "(foo bar) baz", cursor: 8 } -> "(foo bar|) baz"
+ * Example: { text: "(foo) (bar)", cursors: [1, 7] } -> "(|foo) (|bar)"
  */
-export function formatCursorString(text: string, cursor: number): string {
-  if (cursor < 0 || cursor > text.length) {
-    throw new Error(`Cursor position ${cursor} is out of bounds for text of length ${text.length}`);
+export function formatCursorString(text: string, cursorOrCursors: number | number[]): string {
+  const cursors = Array.isArray(cursorOrCursors) ? cursorOrCursors : [cursorOrCursors];
+  
+  // Sort cursors in descending order to insert from right to left
+  const sortedCursors = [...cursors].sort((a, b) => b - a);
+  
+  let result = text;
+  for (const cursor of sortedCursors) {
+    if (cursor < 0 || cursor > text.length) {
+      throw new Error(`Cursor position ${cursor} is out of bounds for text of length ${text.length}`);
+    }
+    result = result.slice(0, cursor) + '|' + result.slice(cursor);
   }
   
-  return text.slice(0, cursor) + '|' + text.slice(cursor);
+  return result;
 }
 
 /**
@@ -58,19 +79,30 @@ export class TestDocument {
   /**
    * Create a TestDocument from cursor notation string
    * Example: TestDocument.fromString("(foo bar|) baz")
+   * Example: TestDocument.fromString("(|foo) (|bar)") - multi-cursor
    */
   static fromString(input: string): TestDocument {
-    const { text, cursor } = parseCursorString(input);
-    return new TestDocument(text, cursor);
+    const { text, cursors } = parseCursorString(input);
+    const doc = new TestDocument(text, cursors[0]);
+    
+    // Set up multiple cursors if present
+    if (cursors.length > 1) {
+      doc._selections = cursors.map(cursor => {
+        const SelectionConstructor = doc._selections[0].constructor as any;
+        return new SelectionConstructor(cursor, cursor);
+      });
+    }
+    
+    return doc;
   }
 
   /**
    * Get the current state as a cursor notation string
    */
   toString(): string {
-    const cursor = this._selections[0].active;
     const fullText = this.model.getText(0, this.model.getLength());
-    return formatCursorString(fullText, cursor);
+    const cursors = this._selections.map(sel => sel.active);
+    return formatCursorString(fullText, cursors);
   }
 
   /**
