@@ -221,12 +221,7 @@ export class TokenCursor {
     return this.isType('ws') || this.isType('ws-nl');
   }
 
-  /**
-   * Check if current token is a comment
-   */
-  isComment(): boolean {
-    return this.isType('comment');
-  }
+
 }
 
 /**
@@ -235,22 +230,21 @@ export class TokenCursor {
 export class LispTokenCursor extends TokenCursor {
   /**
    * Move forward one sexp
-   * @param skipComments - whether to skip over comments
    * @param skipMetadata - whether to skip metadata (reserved for future use)
    * @returns true if successful
    */
-  forwardSexp(skipComments: boolean = true, skipMetadata: boolean = false): boolean {
+  forwardSexp(skipMetadata: boolean = false): boolean {
     const token = this.getToken();
     if (!token) {
       return false;
     }
 
-    // Skip whitespace and comments if requested
-    if (skipComments && (this.isWhitespace() || this.isComment())) {
+    // Skip whitespace
+    if (this.isWhitespace()) {
       if (!this.next()) {
         return false;
       }
-      return this.forwardSexp(skipComments, skipMetadata);
+      return this.forwardSexp(skipMetadata);
     }
 
     if (token.type === 'open') {
@@ -270,11 +264,10 @@ export class LispTokenCursor extends TokenCursor {
 
   /**
    * Move backward one sexp
-   * @param skipComments - whether to skip over comments
    * @param skipMetadata - whether to skip metadata (reserved for future use)
    * @returns true if successful
    */
-  backwardSexp(skipComments: boolean = true, skipMetadata: boolean = false): boolean {
+  backwardSexp(skipMetadata: boolean = false): boolean {
     if (!this.previous()) {
       return false;
     }
@@ -284,9 +277,9 @@ export class LispTokenCursor extends TokenCursor {
       return false;
     }
 
-    // Skip whitespace and comments if requested
-    if (skipComments && (this.isWhitespace() || this.isComment())) {
-      return this.backwardSexp(skipComments, skipMetadata);
+    // Skip whitespace
+    if (this.isWhitespace()) {
+      return this.backwardSexp(skipMetadata);
     }
 
     if (token.type === 'close') {

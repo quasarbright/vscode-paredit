@@ -85,33 +85,27 @@ describe('Scanner', () => {
     });
   });
 
-  describe('Comment handling', () => {
-    test('should tokenize line comments (//)', () => {
+  describe('No comment handling', () => {
+    test('should treat // as identifiers (no comment detection)', () => {
       const tokens = scanner.processLine('// comment', { inString: false });
-      expect(tokens).toHaveLength(1);
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw).toBe('// comment');
+      // Without comment detection, this is just identifiers
+      expect(tokens.length).toBeGreaterThan(0);
+      expect(tokens[0].type).not.toBe('comment'); // No comment type exists
     });
 
-    test('should tokenize Lisp comments (;)', () => {
+    test('should treat ; as identifier character', () => {
       const tokens = scanner.processLine('; comment', { inString: false });
-      expect(tokens).toHaveLength(1);
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw).toBe('; comment');
+      // Semicolon is just part of an identifier
+      expect(tokens.length).toBeGreaterThan(0);
+      expect(tokens[0].type).toBe('id');
     });
 
-    test('should tokenize Python/Ruby comments (#)', () => {
-      const tokens = scanner.processLine('# comment', { inString: false });
+    test('should treat # as identifier character', () => {
+      const tokens = scanner.processLine('#t', { inString: false });
+      // Hash is part of the identifier (important for Racket!)
       expect(tokens).toHaveLength(1);
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw).toBe('# comment');
-    });
-
-    test('should tokenize block comments', () => {
-      const tokens = scanner.processLine('/* comment */', { inString: false });
-      expect(tokens).toHaveLength(1);
-      expect(tokens[0].type).toBe('comment');
-      expect(tokens[0].raw).toBe('/* comment */');
+      expect(tokens[0].type).toBe('id');
+      expect(tokens[0].raw).toBe('#t');
     });
   });
 
