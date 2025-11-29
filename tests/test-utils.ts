@@ -53,7 +53,53 @@ export function formatCursorString(text: string, cursorOrCursors: number | numbe
   return result;
 }
 
-import { Scanner, Token, ScannerState } from '../src/cursor-doc/lexer';
+import { Scanner, Token, ScannerState, DelimiterPair } from '../src/cursor-doc/lexer';
+
+/**
+ * Get test delimiters for a specific language
+ * This simulates what VS Code's language extensions would provide
+ */
+function getTestDelimiters(languageId: string): DelimiterPair[] {
+  const delimiters: Record<string, DelimiterPair[]> = {
+    'javascript': [
+      { open: '(', close: ')' },
+      { open: '[', close: ']' },
+      { open: '{', close: '}' },
+      { open: '"', close: '"' },
+      { open: "'", close: "'" }  // JavaScript has single-quote strings
+    ],
+    'typescript': [
+      { open: '(', close: ')' },
+      { open: '[', close: ']' },
+      { open: '{', close: '}' },
+      { open: '"', close: '"' },
+      { open: "'", close: "'" }  // TypeScript has single-quote strings
+    ],
+    'racket': [
+      { open: '(', close: ')' },
+      { open: '[', close: ']' },
+      { open: '{', close: '}' },
+      { open: '"', close: '"' }
+      // Note: ' is NOT a delimiter in Racket - it's a quote operator
+    ],
+    'lisp': [
+      { open: '(', close: ')' },
+      { open: '[', close: ']' },
+      { open: '{', close: '}' },
+      { open: '"', close: '"' }
+      // Note: ' is NOT a delimiter in Lisp - it's a quote operator
+    ],
+    'scheme': [
+      { open: '(', close: ')' },
+      { open: '[', close: ']' },
+      { open: '{', close: '}' },
+      { open: '"', close: '"' }
+      // Note: ' is NOT a delimiter in Scheme - it's a quote operator
+    ]
+  };
+  
+  return delimiters[languageId] || delimiters['javascript'];
+}
 
 /**
  * Test scanner that simulates comment detection for testing
@@ -62,6 +108,9 @@ import { Scanner, Token, ScannerState } from '../src/cursor-doc/lexer';
  * This allows us to test comment handling without needing a full VS Code environment.
  */
 class TestScanner extends Scanner {
+  constructor(delimiters?: DelimiterPair[]) {
+    super(delimiters);
+  }
   processLine(line: string, startState: ScannerState, lineNumber?: number): Token[] {
     // Get base tokens
     const tokens = super.processLine(line, startState, lineNumber);
@@ -107,10 +156,12 @@ export class TestDocument {
   private model: LineInputModel;
   public _selections: any[];
   public editor: any = null; // Mock editor
+  public languageId: string = 'racket'; // Default to racket
 
-  constructor(text: string, cursor: number = 0) {
-    // Use TestScanner which matches reality (no comment detection)
-    this.model = new LineInputModel(text, new TestScanner());
+  constructor(text: string, cursor: number = 0, languageId: string = 'racket') {
+    this.languageId = languageId;
+    // Use TestScanner with language-specific delimiters
+    this.model = new LineInputModel(text, new TestScanner(getTestDelimiters(languageId)));
     
     // Create a proper selection constructor
     const SelectionConstructor = function(this: any, a: number, b: number) {
@@ -128,10 +179,11 @@ export class TestDocument {
    * Create a TestDocument from cursor notation string
    * Example: TestDocument.fromString("(foo bar|) baz")
    * Example: TestDocument.fromString("(|foo) (|bar)") - multi-cursor
+   * Example: TestDocument.fromString("'foo|", 'racket') - with language
    */
-  static fromString(input: string): TestDocument {
+  static fromString(input: string, languageId: string = 'racket'): TestDocument {
     const { text, cursors } = parseCursorString(input);
-    const doc = new TestDocument(text, cursors[0]);
+    const doc = new TestDocument(text, cursors[0], languageId);
     
     // Set up multiple cursors if present
     if (cursors.length > 1) {

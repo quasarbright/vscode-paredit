@@ -16,6 +16,8 @@ let configChangeListeners: Array<(config: PareditConfig) => void> = [];
 
 /**
  * Default delimiters used when no custom configuration is provided
+ * Note: Single quotes are NOT included by default because they have different
+ * meanings in different languages (string delimiter in JS, quote operator in Lisp)
  */
 export const DEFAULT_DELIMITERS: DelimiterPair[] = [
   { open: '(', close: ')' },
@@ -68,16 +70,42 @@ export function isLanguageEnabled(document: vscode.TextDocument): boolean {
 
 /**
  * Get delimiter configuration for a specific language
+ * Priority: user config > language extension config > default
  */
 export function getDelimitersForLanguage(languageId: string): DelimiterPair[] {
   const config = getConfig();
   
-  // Return custom delimiters if defined for this language
+  // 1. Return custom delimiters if defined for this language (highest priority)
   if (config.customDelimiters[languageId]) {
     return config.customDelimiters[languageId];
   }
   
-  // Return default delimiters
+  // 2. Try to get brackets from VS Code's language extension
+  try {
+    const { getBracketPairs } = require('./cursor-doc/language-config');
+    const brackets: DelimiterPair[] = getBracketPairs(languageId);
+    
+    if (brackets && brackets.length > 0) {
+      // Add string delimiters to the bracket pairs from the language
+      // Most languages don't define quotes as brackets, but we need them for paredit
+      const result = [...brackets];
+      
+      const hasDoubleQuote = brackets.some((b: DelimiterPair) => b.open === '"' && b.close === '"');
+      if (!hasDoubleQuote) {
+        result.push({ open: '"', close: '"' });
+      }
+      
+      // Note: We do NOT automatically add single quotes because they have different
+      // meanings in different languages. If a language uses ' for strings, it should
+      // be in the language extension's bracket configuration.
+      
+      return result;
+    }
+  } catch (error) {
+    // Language config module not available or error occurred
+  }
+  
+  // 3. Return default delimiters (fallback)
   return DEFAULT_DELIMITERS;
 }
 

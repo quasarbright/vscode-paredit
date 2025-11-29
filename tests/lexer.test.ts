@@ -55,19 +55,38 @@ describe('Scanner', () => {
   describe('String handling', () => {
     test('should tokenize double quotes as delimiters', () => {
       const tokens = scanner.processLine('"hello"', { inString: false });
-      expect(tokens[0].type).toBe('open');
+      expect(tokens[0].type).toBe('str-start');
       expect(tokens[0].raw).toBe('"');
-      expect(tokens[1].type).toBe('id');
+      expect(tokens[1].type).toBe('str-inside');
       expect(tokens[1].raw).toBe('hello');
-      expect(tokens[2].type).toBe('close');
+      expect(tokens[2].type).toBe('str-end');
       expect(tokens[2].raw).toBe('"');
     });
 
-    test('should handle single quotes as part of identifiers', () => {
+    test('should handle single quotes as identifiers by default', () => {
       const tokens = scanner.processLine("'hello'", { inString: false });
-      // Single quotes are not in DEFAULT_DELIMITERS, so they're part of identifiers
+      // Single quotes are NOT in DEFAULT_DELIMITERS because they're language-specific
+      // In Lisp/Racket, ' is a quote operator, not a string delimiter
       expect(tokens[0].type).toBe('id');
       expect(tokens[0].raw).toBe("'hello'");
+    });
+
+    test('should tokenize single quotes as delimiters when configured', () => {
+      // Simulate JavaScript which has single-quote strings
+      const jsScanner = new Scanner([
+        { open: '(', close: ')' },
+        { open: '[', close: ']' },
+        { open: '{', close: '}' },
+        { open: '"', close: '"' },
+        { open: "'", close: "'" }
+      ]);
+      const tokens = jsScanner.processLine("'hello'", { inString: false });
+      expect(tokens[0].type).toBe('str-start');
+      expect(tokens[0].raw).toBe("'");
+      expect(tokens[1].type).toBe('str-inside');
+      expect(tokens[1].raw).toBe('hello');
+      expect(tokens[2].type).toBe('str-end');
+      expect(tokens[2].raw).toBe("'");
     });
 
     test('should handle backticks as part of identifiers', () => {

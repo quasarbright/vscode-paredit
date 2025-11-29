@@ -98,8 +98,12 @@ export class Scanner {
         const isSymmetric = this.symmetricDelimiters.has(char);
         const openSymmetric = state.openSymmetricDelimiters || [];
         
-        let tokenType: 'open' | 'close';
+        // Check if this is a string delimiter (quote character)
+        const isStringDelimiter = char === '"' || char === "'";
+        
+        let tokenType: 'open' | 'close' | 'str-start';
         let newOpenSymmetric = [...openSymmetric];
+        let newState = { ...state, openSymmetricDelimiters: newOpenSymmetric };
         
         if (isSymmetric) {
           // For symmetric delimiters, check if one is already open
@@ -108,10 +112,19 @@ export class Scanner {
             // This closes the most recent open symmetric delimiter
             tokenType = 'close';
             newOpenSymmetric.splice(openIndex, 1);
+            newState.openSymmetricDelimiters = newOpenSymmetric;
           } else {
             // This opens a new symmetric delimiter
             tokenType = 'open';
             newOpenSymmetric.push(char);
+            newState.openSymmetricDelimiters = newOpenSymmetric;
+            
+            // If it's a string delimiter, enter string mode
+            if (isStringDelimiter) {
+              tokenType = 'str-start';
+              newState.inString = true;
+              newState.stringDelimiter = char;
+            }
           }
         } else {
           // For asymmetric delimiters, use the normal logic
@@ -122,9 +135,9 @@ export class Scanner {
           type: tokenType,
           raw: char,
           offset,
-          state: { ...state, openSymmetricDelimiters: newOpenSymmetric }
+          state: newState
         });
-        state = { ...state, openSymmetricDelimiters: newOpenSymmetric };
+        state = newState;
         offset++;
       } else {
         // Identifier or junk

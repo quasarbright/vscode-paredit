@@ -83,6 +83,36 @@ describe('Paredit with Cursor Notation', () => {
       const [_, end] = forwardSexpRange(doc as any, doc.cursor);
       doc.cursor = end;
       expect(doc.toString()).toBe('(foo bar\n     baz\n\n     boo)|');
+    });
+
+    test('move forward over single-quoted string in JavaScript', () => {
+      const doc = TestDocument.fromString("|'foo bar'", 'javascript');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe("'foo bar'|");
+    });
+
+    test('move forward over double-quoted string', () => {
+      const doc = TestDocument.fromString('|"foo bar"');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('"foo bar"|');
+    });
+
+    test('single quote is NOT a delimiter in Racket', () => {
+      const doc = TestDocument.fromString("'|foo", 'racket');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      // In Racket, ' is a quote operator, so we move over the atom "foo"
+      expect(doc.toString()).toBe("'foo|");
+    });
+
+    test('from empty line', () => {
+      const doc = TestDocument.fromString("(foo)\n|\n(bar)", 'racket');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      // In Racket, ' is a quote operator, so we move over the atom "foo"
+      expect(doc.toString()).toBe("(foo)\n\n(bar)|");
     })
   });
 

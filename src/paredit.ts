@@ -21,8 +21,15 @@ export function forwardSexpRange(doc: EditableDocument, offset: number): Range {
   const cursor = doc.getTokenCursor(offset);
   let startToken = cursor.getToken();
   
+  // If we're on an empty line or past the end, try to move to the next token
   if (!startToken) {
-    return [offset, offset];
+    if (!cursor.next()) {
+      return [offset, offset];
+    }
+    startToken = cursor.getToken();
+    if (!startToken) {
+      return [offset, offset];
+    }
   }
   
   // If we're at or past the end of the current token, move to the next token
@@ -38,17 +45,20 @@ export function forwardSexpRange(doc: EditableDocument, offset: number): Range {
   
   // Skip whitespace and comments at the start
   if (startToken.type === 'ws' || startToken.type === 'ws-nl' || startToken.type === 'comment') {
-    cursor.forwardWhitespace();
+    if (!cursor.forwardWhitespace()) {
+      // No non-whitespace tokens after this position
+      return [offset, offset];
+    }
     startToken = cursor.getToken();
-    if (!startToken || startToken.type === 'ws' || startToken.type === 'ws-nl' || startToken.type === 'comment') {
-      // Only whitespace/comments in document, or at end
+    if (!startToken) {
+      // Reached end of document
       return [offset, offset];
     }
   }
   
-  // Special handling for when we're at an open delimiter
+  // Special handling for when we're at an open delimiter or string start
   // We need to move to the matching close and then past it
-  if (startToken.type === 'open') {
+  if (startToken.type === 'open' || startToken.type === 'str-start') {
     if (!cursor.forwardList()) {
       return [offset, offset];
     }
@@ -109,7 +119,7 @@ export function backwardSexpRange(doc: EditableDocument, offset: number): Range 
   
   // We're in the middle or at the end of a token
   // Find the start of the current sexp
-  if (token.type === 'close') {
+  if (token.type === 'close' || token.type === 'str-end') {
     // We're at a closing delimiter, find the matching opening delimiter
     if (!cursor.backwardList()) {
       return [offset, offset];
@@ -138,7 +148,7 @@ export function forwardSexpOrUpRange(doc: EditableDocument, offset: number): Ran
   
   // Check if we're at a closing delimiter
   const token = cursor.getToken();
-  if (token && token.type === 'close') {
+  if (token && (token.type === 'close' || token.type === 'str-end')) {
     // Move past the closing delimiter
     const endOffset = cursor.offsetEnd;
     cursor.next();
@@ -194,7 +204,7 @@ export function backwardSexpOrUpRange(doc: EditableDocument, offset: number): Ra
   }
   
   // Check if we're at a closing delimiter - if so, try to move backward first
-  if (token.type === 'close') {
+  if (token.type === 'close' || token.type === 'str-end') {
     // Try to move backward one sexp
     if (cursor.backwardSexp()) {
       return [cursor.offsetStart, offset];
@@ -226,7 +236,7 @@ export function rangeToForwardUpList(doc: EditableDocument, offset: number): Ran
   
   // Check if we're on a closing delimiter
   const token = cursor.getToken();
-  if (token && token.type === 'close' && cursor.offsetStart === offset) {
+  if (token && (token.type === 'close' || token.type === 'str-end') && cursor.offsetStart === offset) {
     // We're on a closing delimiter, move up one more level
     // First move past this closing delimiter
     if (!cursor.next()) {
@@ -580,7 +590,7 @@ export async function slurpSexpForward(doc: EditableDocument): Promise<void> {
   
   // Check if there's a sexp to slurp
   const nextToken = cursor.getToken();
-  if (!nextToken || nextToken.type === 'close') {
+  if (!nextToken || nextToken.type === 'close' || nextToken.type === 'str-end') {
     return; // Nothing to slurp
   }
   
@@ -656,7 +666,7 @@ export async function slurpSexpBackward(doc: EditableDocument): Promise<void> {
   
   // Get the start position of the previous sexp
   let startOfPrev: number;
-  if (prevToken.type === 'close') {
+  if (prevToken.type === 'close' || prevToken.type === 'str-end') {
     // It's a list, move to its opening delimiter
     if (!cursor.backwardList()) {
       return;

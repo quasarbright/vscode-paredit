@@ -262,13 +262,13 @@ export class LispTokenCursor extends TokenCursor {
       return this.forwardSexp(skipMetadata);
     }
 
-    if (token.type === 'open') {
+    if (token.type === 'open' || token.type === 'str-start') {
       // Move to matching close delimiter, then past it
       if (!this.forwardList()) {
         return false;
       }
       return this.next();
-    } else if (token.type === 'close') {
+    } else if (token.type === 'close' || token.type === 'str-end') {
       // Already at close, just move past it
       return this.next();
     } else {
@@ -297,10 +297,10 @@ export class LispTokenCursor extends TokenCursor {
       return this.backwardSexp(skipMetadata);
     }
 
-    if (token.type === 'close') {
+    if (token.type === 'close' || token.type === 'str-end') {
       // Move to matching open delimiter
       return this.backwardList();
-    } else if (token.type === 'open') {
+    } else if (token.type === 'open' || token.type === 'str-start') {
       // Already at open, we're done
       return true;
     } else {
@@ -315,7 +315,7 @@ export class LispTokenCursor extends TokenCursor {
    */
   forwardList(): boolean {
     const startToken = this.getToken();
-    if (!startToken || startToken.type !== 'open') {
+    if (!startToken || (startToken.type !== 'open' && startToken.type !== 'str-start')) {
       return false;
     }
 
@@ -338,9 +338,9 @@ export class LispTokenCursor extends TokenCursor {
         continue;
       }
 
-      if (token.type === 'open' && token.raw === openDelim) {
+      if ((token.type === 'open' || token.type === 'str-start') && token.raw === openDelim) {
         depth++;
-      } else if (token.type === 'close' && token.raw === closeDelim) {
+      } else if ((token.type === 'close' || token.type === 'str-end') && token.raw === closeDelim) {
         depth--;
         if (depth === 0) {
           return true;
@@ -357,7 +357,7 @@ export class LispTokenCursor extends TokenCursor {
    */
   backwardList(): boolean {
     const startToken = this.getToken();
-    if (!startToken || startToken.type !== 'close') {
+    if (!startToken || (startToken.type !== 'close' && startToken.type !== 'str-end')) {
       return false;
     }
 
@@ -380,9 +380,9 @@ export class LispTokenCursor extends TokenCursor {
         continue;
       }
 
-      if (token.type === 'close' && token.raw === closeDelim) {
+      if ((token.type === 'close' || token.type === 'str-end') && token.raw === closeDelim) {
         depth++;
-      } else if (token.type === 'open' && token.raw === openDelim) {
+      } else if ((token.type === 'open' || token.type === 'str-start') && token.raw === openDelim) {
         depth--;
         if (depth === 0) {
           return true;

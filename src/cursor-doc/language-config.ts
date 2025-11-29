@@ -20,16 +20,32 @@ export interface CommentConfig {
 }
 
 /**
- * Cache of language configurations
+ * Bracket/delimiter pair
  */
-const configCache = new Map<string, CommentConfig | null>();
+export interface BracketPair {
+  open: string;
+  close: string;
+}
 
 /**
- * Get comment configuration for a language by querying VS Code's extensions
+ * Full language configuration
+ */
+export interface LanguageConfig {
+  comments: CommentConfig | null;
+  brackets: BracketPair[];
+}
+
+/**
+ * Cache of language configurations
+ */
+const configCache = new Map<string, LanguageConfig | null>();
+
+/**
+ * Get full language configuration for a language by querying VS Code's extensions
  * This is completely language-agnostic - it reads the configuration from
  * the language extension's package.json and language-configuration.json
  */
-export function getCommentConfig(languageId: string): CommentConfig | null {
+export function getLanguageConfig(languageId: string): LanguageConfig | null {
   // Check cache
   if (configCache.has(languageId)) {
     return configCache.get(languageId)!;
@@ -42,9 +58,25 @@ export function getCommentConfig(languageId: string): CommentConfig | null {
 }
 
 /**
+ * Get comment configuration for a language (convenience method)
+ */
+export function getCommentConfig(languageId: string): CommentConfig | null {
+  const config = getLanguageConfig(languageId);
+  return config?.comments || null;
+}
+
+/**
+ * Get bracket pairs for a language (convenience method)
+ */
+export function getBracketPairs(languageId: string): BracketPair[] {
+  const config = getLanguageConfig(languageId);
+  return config?.brackets || [];
+}
+
+/**
  * Load language configuration from VS Code extensions
  */
-function loadLanguageConfig(languageId: string): CommentConfig | null {
+function loadLanguageConfig(languageId: string): LanguageConfig | null {
   try {
     // Search all extensions for this language
     for (const extension of vscode.extensions.all) {
@@ -64,12 +96,33 @@ function loadLanguageConfig(languageId: string): CommentConfig | null {
             const config = parseJsonWithComments(configContent);
             
             // Extract comment configuration
-            if (config.comments) {
-              return {
-                lineComment: config.comments.lineComment,
-                blockComment: config.comments.blockComment
-              };
+            const comments: CommentConfig | null = config.comments ? {
+              lineComment: config.comments.lineComment,
+              blockComment: config.comments.blockComment
+            } : null;
+            
+            // Extract bracket pairs
+            const brackets: BracketPair[] = [];
+            
+            // Check for brackets array (most common)
+            if (config.brackets && Array.isArray(config.brackets)) {
+              for (const bracket of config.brackets) {
+                if (Array.isArray(bracket) && bracket.length === 2) {
+                  brackets.push({ open: bracket[0], close: bracket[1] });
+                }
+              }
             }
+            
+            // Also check autoClosingPairs as fallback
+            if (brackets.length === 0 && config.autoClosingPairs && Array.isArray(config.autoClosingPairs)) {
+              for (const pair of config.autoClosingPairs) {
+                if (pair.open && pair.close) {
+                  brackets.push({ open: pair.open, close: pair.close });
+                }
+              }
+            }
+            
+            return { comments, brackets };
           } catch (error) {
             // Failed to read or parse config file
             continue;

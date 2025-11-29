@@ -40,9 +40,9 @@ describe('Delimiter Configuration', () => {
       const scanner = new Scanner();
       const tokens = scanner.processLine('"hello"', { inString: false });
       
-      expect(tokens[0].type).toBe('open');
+      expect(tokens[0].type).toBe('str-start');
       expect(tokens[0].raw).toBe('"');
-      expect(tokens[2].type).toBe('close');
+      expect(tokens[2].type).toBe('str-end');
       expect(tokens[2].raw).toBe('"');
     });
 
@@ -117,8 +117,8 @@ describe('Delimiter Configuration', () => {
       
       const quoteTokens = tokens.filter(t => t.raw === '"');
       expect(quoteTokens.length).toBe(2);
-      expect(quoteTokens[0].type).toBe('open');
-      expect(quoteTokens[1].type).toBe('close');
+      expect(quoteTokens[0].type).toBe('str-start');
+      expect(quoteTokens[1].type).toBe('str-end');
     });
 
     test('should handle multiple double quote pairs', () => {
@@ -127,10 +127,10 @@ describe('Delimiter Configuration', () => {
       
       const quoteTokens = tokens.filter(t => t.raw === '"');
       expect(quoteTokens.length).toBe(4);
-      expect(quoteTokens[0].type).toBe('open');
-      expect(quoteTokens[1].type).toBe('close');
-      expect(quoteTokens[2].type).toBe('open');
-      expect(quoteTokens[3].type).toBe('close');
+      expect(quoteTokens[0].type).toBe('str-start');
+      expect(quoteTokens[1].type).toBe('str-end');
+      expect(quoteTokens[2].type).toBe('str-start');
+      expect(quoteTokens[3].type).toBe('str-end');
     });
   });
 });

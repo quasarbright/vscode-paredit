@@ -178,6 +178,8 @@ describe('Configuration Manager', () => {
   });
 
   describe('getDelimitersForLanguage', () => {
+    // Note: In a real VS Code environment, this would also check language extension
+    // bracket configurations. In tests, it falls back to defaults.
     test('should return default delimiters when no custom delimiters defined', () => {
       const mockGet = jest.fn((key: string, defaultValue: any) => {
         if (key === 'customDelimiters') {
@@ -192,6 +194,8 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
+      // Note: Single quotes are NOT in default delimiters
+      // They should come from language extension configuration
       expect(delimiters).toEqual([
         { open: '(', close: ')' },
         { open: '[', close: ']' },
@@ -236,6 +240,8 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
+      // Note: Single quotes are NOT in default delimiters
+      // They should come from language extension configuration
       expect(delimiters).toEqual([
         { open: '(', close: ')' },
         { open: '[', close: ']' },
