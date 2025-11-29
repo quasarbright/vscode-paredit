@@ -1,9 +1,9 @@
 {
   "name": "paredit",
   "displayName": "Paredit",
-  "description": "Structural editing with paredit commands for any language",
+  "description": "Structural editing with paredit commands",
   "version": "0.1.0",
-  "publisher": "paredit",
+  "publisher": "MikeDelmonaco",
   "engines": {
     "vscode": "^1.80.0"
   },
