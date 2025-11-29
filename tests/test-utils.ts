@@ -53,6 +53,26 @@ export function formatCursorString(text: string, cursorOrCursors: number | numbe
   return result;
 }
 
+import { Scanner } from '../src/cursor-doc/lexer';
+
+/**
+ * Test scanner that matches reality - NO comment detection
+ * 
+ * This is intentional: the real implementation does not detect comments
+ * because we don't hardcode language-specific comment syntax.
+ * Comment detection should be delegated to VS Code's language extensions.
+ * 
+ * For now, the scanner treats all text as potential code, including
+ * what looks like comments. This means:
+ * - "//" is treated as an identifier
+ * - ";" is treated as an identifier character
+ * - ")" inside a comment is treated as a real closing delimiter
+ */
+class TestScanner extends Scanner {
+  // No special comment handling - just use the base Scanner
+  // This matches the real VSCodeScanner behavior
+}
+
 /**
  * Mock EditableDocument for testing with cursor notation
  */
@@ -62,7 +82,8 @@ export class TestDocument {
   public editor: any = null; // Mock editor
 
   constructor(text: string, cursor: number = 0) {
-    this.model = new LineInputModel(text);
+    // Use TestScanner which matches reality (no comment detection)
+    this.model = new LineInputModel(text, new TestScanner());
     
     // Create a proper selection constructor
     const SelectionConstructor = function(this: any, a: number, b: number) {

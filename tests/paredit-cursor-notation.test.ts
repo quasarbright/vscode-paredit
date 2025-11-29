@@ -845,6 +845,29 @@ describe('Paredit with Cursor Notation', () => {
     })
   });
 
+  describe('Comments', () => {
+    test('// is not a comment in racket', () => {
+      const doc = TestDocument.fromString('|(foo bar // )\n  baz)');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('(foo bar // )|\n  baz)');
+    });
+
+    test('commented close paren should not close the list', () => {
+      const doc = TestDocument.fromString('|(foo bar ;)\n  baz)');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('(foo bar ;)\n  baz)|');
+    });
+
+    test('slurp should work correctly with commented close paren', async () => {
+      const doc = TestDocument.fromString('(foo|) ;)\nbar');
+      await slurpSexpForward(doc as any);
+      // Should slurp bar, ignoring the commented close paren
+      expect(doc.toString()).toBe('(foo ;)\nbar|)');
+    });
+  });
+
   describe('Multi-cursor Support', () => {
     describe('Range operations (work with multi-cursor)', () => {
       test('forwardSexpRange - multiple cursors move forward independently', () => {

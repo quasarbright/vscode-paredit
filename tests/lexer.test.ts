@@ -85,12 +85,12 @@ describe('Scanner', () => {
     });
   });
 
-  describe('No comment handling', () => {
-    test('should treat // as identifiers (no comment detection)', () => {
+  describe('No comment handling (by design)', () => {
+    test('should treat // as identifiers', () => {
       const tokens = scanner.processLine('// comment', { inString: false });
-      // Without comment detection, this is just identifiers
+      // Scanner doesn't detect comments - that's done by VS Code tokenization
       expect(tokens.length).toBeGreaterThan(0);
-      expect(tokens[0].type).not.toBe('comment'); // No comment type exists
+      expect(tokens[0].type).toBe('id');
     });
 
     test('should treat ; as identifier character', () => {
@@ -100,7 +100,7 @@ describe('Scanner', () => {
       expect(tokens[0].type).toBe('id');
     });
 
-    test('should treat # as identifier character', () => {
+    test('should treat # as identifier character (important for Racket)', () => {
       const tokens = scanner.processLine('#t', { inString: false });
       // Hash is part of the identifier (important for Racket!)
       expect(tokens).toHaveLength(1);

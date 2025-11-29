@@ -221,6 +221,21 @@ export class TokenCursor {
     return this.isType('ws') || this.isType('ws-nl');
   }
 
+  /**
+   * Check if current token is a comment
+   */
+  isComment(): boolean {
+    return this.isType('comment');
+  }
+
+  /**
+   * Check if current token should be skipped during navigation
+   * (whitespace or comments)
+   */
+  isSkippable(): boolean {
+    return this.isWhitespace() || this.isComment();
+  }
+
 
 }
 
@@ -239,8 +254,8 @@ export class LispTokenCursor extends TokenCursor {
       return false;
     }
 
-    // Skip whitespace
-    if (this.isWhitespace()) {
+    // Skip whitespace and comments
+    if (this.isSkippable()) {
       if (!this.next()) {
         return false;
       }
@@ -277,8 +292,8 @@ export class LispTokenCursor extends TokenCursor {
       return false;
     }
 
-    // Skip whitespace
-    if (this.isWhitespace()) {
+    // Skip whitespace and comments
+    if (this.isSkippable()) {
       return this.backwardSexp(skipMetadata);
     }
 
@@ -318,6 +333,11 @@ export class LispTokenCursor extends TokenCursor {
         break;
       }
 
+      // Skip comments - delimiters in comments don't count
+      if (this.isComment()) {
+        continue;
+      }
+
       if (token.type === 'open' && token.raw === openDelim) {
         depth++;
       } else if (token.type === 'close' && token.raw === closeDelim) {
@@ -355,6 +375,11 @@ export class LispTokenCursor extends TokenCursor {
         break;
       }
 
+      // Skip comments - delimiters in comments don't count
+      if (this.isComment()) {
+        continue;
+      }
+
       if (token.type === 'close' && token.raw === closeDelim) {
         depth++;
       } else if (token.type === 'open' && token.raw === openDelim) {
@@ -380,6 +405,11 @@ export class LispTokenCursor extends TokenCursor {
       const token = cursor.getToken();
       if (!token) {
         break;
+      }
+
+      // Skip comments - delimiters in comments don't count
+      if (cursor.isComment()) {
+        continue;
       }
 
       if (token.type === 'close') {
@@ -442,7 +472,7 @@ export class LispTokenCursor extends TokenCursor {
    */
   forwardWhitespace(): boolean {
     let moved = false;
-    while (this.isWhitespace()) {
+    while (this.isSkippable()) {
       if (!this.next()) {
         break;
       }
@@ -457,11 +487,11 @@ export class LispTokenCursor extends TokenCursor {
    */
   backwardWhitespace(): boolean {
     let moved = false;
-    while (this.previous() && this.isWhitespace()) {
+    while (this.previous() && this.isSkippable()) {
       moved = true;
     }
     // Move back to the last whitespace token
-    if (moved && !this.isWhitespace()) {
+    if (moved && !this.isSkippable()) {
       this.next();
     }
     return moved;

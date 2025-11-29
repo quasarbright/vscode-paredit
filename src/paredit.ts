@@ -36,12 +36,12 @@ export function forwardSexpRange(doc: EditableDocument, offset: number): Range {
     }
   }
   
-  // Skip whitespace at the start
-  if (startToken.type === 'ws' || startToken.type === 'ws-nl') {
+  // Skip whitespace and comments at the start
+  if (startToken.type === 'ws' || startToken.type === 'ws-nl' || startToken.type === 'comment') {
     cursor.forwardWhitespace();
     startToken = cursor.getToken();
-    if (!startToken || startToken.type === 'ws' || startToken.type === 'ws-nl') {
-      // Only whitespace in document, or at end
+    if (!startToken || startToken.type === 'ws' || startToken.type === 'ws-nl' || startToken.type === 'comment') {
+      // Only whitespace/comments in document, or at end
       return [offset, offset];
     }
   }
@@ -84,8 +84,8 @@ export function backwardSexpRange(doc: EditableDocument, offset: number): Range 
     token = cursor.getToken();
   }
   
-  // If we're on whitespace, skip backward over it to find the actual sexp
-  while (token && (token.type === 'ws' || token.type === 'ws-nl')) {
+  // If we're on whitespace or comment, skip backward over it to find the actual sexp
+  while (token && (token.type === 'ws' || token.type === 'ws-nl' || token.type === 'comment')) {
     if (!cursor.previous()) {
       return [offset, offset];
     }

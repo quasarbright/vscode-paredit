@@ -29,9 +29,10 @@ export class LineInputModel {
     const lines: TextLine[] = [];
     let state: ScannerState = { inString: false };
 
-    for (const lineText of lineStrings) {
+    for (let lineNumber = 0; lineNumber < lineStrings.length; lineNumber++) {
+      const lineText = lineStrings[lineNumber];
       const startState = { ...state };
-      const tokens = this.scanner.processLine(lineText, startState);
+      const tokens = this.scanner.processLine(lineText, startState, lineNumber);
       
       // Determine end state from last token
       const endState = tokens.length > 0 

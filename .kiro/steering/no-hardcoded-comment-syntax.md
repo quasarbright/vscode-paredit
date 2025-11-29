@@ -1,0 +1,1 @@
+You MUST NOT hard-code comment syntax like writing the fact that js line comments start with `//`. Any comment detection should be done by delegating to VSCode's lexer which uses a language extension's lexer. There should be no language-specific logic in this entire project, except for the racket-like fallback.

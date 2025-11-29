@@ -1,0 +1,1 @@
+When I tell you to fix a problem or add a feature, before you implement you should first create a test that tests the expected functionality, which should fail initially. Then implement the fix/feature. Then, iterate until that test passes so you know it actually works.

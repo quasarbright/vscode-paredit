@@ -19,6 +19,7 @@ export type TokenType =
   | 'str-start'  // String start delimiter
   | 'str-end'    // String end delimiter
   | 'id'         // Identifiers/atoms
+  | 'comment'    // Comment (detected by VS Code tokenization)
   | 'junk';      // Catch-all for unrecognized characters
 
 export interface Token {
@@ -48,7 +49,8 @@ export const DEFAULT_DELIMITERS: DelimiterPair[] = [
 
 /**
  * Scanner class that tokenizes a line of text
- * Does NOT handle comments - that should be done at a higher level
+ * Does NOT try to detect comments - that should be done at a higher level
+ * using VS Code's tokenization
  */
 export class Scanner {
   private delimiters: DelimiterPair[];
@@ -67,8 +69,11 @@ export class Scanner {
 
   /**
    * Process a line and return tokens
+   * @param line - the line text
+   * @param startState - the scanner state at the start of the line
+   * @param _lineNumber - optional line number (for VS Code integration)
    */
-  processLine(line: string, startState: ScannerState): Token[] {
+  processLine(line: string, startState: ScannerState, _lineNumber?: number): Token[] {
     const tokens: Token[] = [];
     let offset = 0;
     let state = { ...startState };

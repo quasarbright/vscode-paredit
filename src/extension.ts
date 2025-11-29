@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { EditableDocument } from './cursor-doc/model';
-import { Scanner } from './cursor-doc/lexer';
+import { VSCodeScanner } from './cursor-doc/vscode-scanner';
 import * as commands from './commands';
 import * as config from './config';
 
@@ -26,8 +26,8 @@ function wrapPareditCommand(
     // Get delimiters for this language
     const delimiters = config.getDelimitersForLanguage(editor.document.languageId);
     
-    // Create scanner
-    const scanner = new Scanner(delimiters);
+    // Create VS Code-aware scanner that detects comments
+    const scanner = new VSCodeScanner(editor.document, delimiters);
     
     // Wrap the editor in EditableDocument
     const doc = new EditableDocument(editor, scanner);
