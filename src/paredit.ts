@@ -224,6 +224,16 @@ export function backwardSexpOrUpRange(doc: EditableDocument, offset: number): Ra
 export function rangeToForwardUpList(doc: EditableDocument, offset: number): Range {
   const cursor = doc.getTokenCursor(offset);
   
+  // Check if we're on a closing delimiter
+  const token = cursor.getToken();
+  if (token && token.type === 'close' && cursor.offsetStart === offset) {
+    // We're on a closing delimiter, move up one more level
+    // First move past this closing delimiter
+    if (!cursor.next()) {
+      return [offset, offset];
+    }
+  }
+  
   // Try to move up to parent opening delimiter
   if (cursor.upList()) {
     // Now move to the matching closing delimiter
@@ -332,8 +342,30 @@ export function selectCurrentForm(doc: EditableDocument): void {
 export function selectForwardSexp(doc: EditableDocument): void {
   const selections = doc.selections;
   const newSelections = selections.map(sel => {
-    const [_, end] = forwardSexpRange(doc, sel.active);
-    return new (sel.constructor as any)(sel.anchor, end);
+    let startPos = sel.active;
+    let anchorPos = sel.anchor;
+    
+    // Special case: if we're just after an opening delimiter, move back to include it
+    // This handles both empty selections and Vim visual mode (where anchor might be at the delimiter)
+    if (startPos > 0) {
+      const cursor = doc.getTokenCursor(startPos - 1);
+      const token = cursor.getToken();
+      if (token && token.type === 'open' && cursor.offsetEnd === startPos) {
+        // We're right after an opening delimiter
+        // Check if anchor is at or before the position just after the opening delimiter
+        if (anchorPos <= startPos) {
+          // Move back to include the opening delimiter
+          startPos = cursor.offsetStart;
+          // If anchor was at or after the delimiter, move it back too
+          if (anchorPos >= cursor.offsetStart) {
+            anchorPos = cursor.offsetStart;
+          }
+        }
+      }
+    }
+    
+    const [_, end] = forwardSexpRange(doc, startPos);
+    return new (sel.constructor as any)(anchorPos, end);
   });
   
   doc.selections = newSelections;

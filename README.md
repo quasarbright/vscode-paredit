@@ -291,6 +291,14 @@ If you're using a Vim extension (like VSCodeVim), you can integrate paredit comm
     {
       "before": ["H"],
       "commands": ["paredit.selectBackwardSexp"]
+    },
+    {
+      "before": [")"],
+      "commands": ["paredit.forwardUpSexp"]
+    },
+    {
+      "before": ["("],
+      "commands": ["paredit.backwardUpSexp"]
     }
   ]
 }

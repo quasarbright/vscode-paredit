@@ -77,6 +77,8 @@ describe('Paredit with Cursor Notation', () => {
       expect(start).toBe(end);
       expect(doc.toString()).toBe('foo|');
     });
+
+
   });
 
   describe('backwardSexpRange', () => {
@@ -367,6 +369,20 @@ describe('Paredit with Cursor Notation', () => {
       expect(doc.toString()).toBe('(a (b c|) d)');
     });
 
+    test('when on closing delimiter, move to next enclosing close', () => {
+      const doc = TestDocument.fromString('(a (b c|) d)');
+      const [_, end] = rangeToForwardUpList(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('(a (b c) d|)');
+    });
+
+    test('when on closing delimiter in deeply nested structure', () => {
+      const doc = TestDocument.fromString('(a (b (c d|) e) f)');
+      const [_, end] = rangeToForwardUpList(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('(a (b (c d) e|) f)');
+    });
+
     test('no movement at top level', () => {
       const doc = TestDocument.fromString('foo |bar');
       const [start, end] = rangeToForwardUpList(doc as any, doc.cursor);
@@ -387,6 +403,13 @@ describe('Paredit with Cursor Notation', () => {
       const [start, _] = rangeToBackwardUpList(doc as any, doc.cursor);
       doc.cursor = start;
       expect(doc.toString()).toBe('(a |(b c) d)');
+    });
+
+    test('when on opening delimiter, move to next enclosing open', () => {
+      const doc = TestDocument.fromString('(a |(b c) d)');
+      const [start, _] = rangeToBackwardUpList(doc as any, doc.cursor);
+      doc.cursor = start;
+      expect(doc.toString()).toBe('|(a (b c) d)');
     });
 
     test('no movement at top level', () => {
@@ -475,6 +498,42 @@ describe('Paredit with Cursor Notation', () => {
       const sel = doc.selections[0];
       expect(sel.anchor).toBe(0);
       expect(sel.active).toBe(9);
+    });
+
+    test('when cursor is just after opening paren, select whole sexp', () => {
+      // This simulates the case where VS Code positions cursor at position 1
+      // when you visually see it at the opening paren
+      const doc = TestDocument.fromString('(|foo bar) baz');
+      
+      // Manually create a selection at position 1 (just after opening paren)
+      const ModelEditSelection = doc.selections[0].constructor;
+      doc.selections = [new ModelEditSelection(1, 1)];
+      
+      selectForwardSexp(doc as any);
+      const sel = doc.selections[0];
+      
+      // Should select the entire sexp including the opening paren
+      expect(sel.anchor).toBe(0);  // Moved back to include opening paren
+      expect(sel.active).toBe(9);   // End after closing paren
+      expect(doc.getText(sel.start, sel.end)).toBe('(foo bar)');
+    });
+
+    test('vim visual mode: anchor at 0, active at 1, then select forward', () => {
+      // This simulates Vim visual mode behavior:
+      // When you press 'v' at position 0, Vim creates a selection from 0 to 1
+      const doc = TestDocument.fromString('|(foo bar) baz');
+      
+      // Manually create a Vim-style selection: anchor=0, active=1
+      const ModelEditSelection = doc.selections[0].constructor;
+      doc.selections = [new ModelEditSelection(0, 1)];
+      
+      selectForwardSexp(doc as any);
+      const sel = doc.selections[0];
+      
+      // Should select the entire sexp
+      expect(sel.anchor).toBe(0);  // Keep anchor at opening paren
+      expect(sel.active).toBe(9);   // End after closing paren
+      expect(doc.getText(sel.start, sel.end)).toBe('(foo bar)');
     });
   });
 
