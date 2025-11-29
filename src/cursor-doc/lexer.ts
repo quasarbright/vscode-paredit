@@ -267,7 +267,6 @@ export class Scanner {
       if (this.isWhitespace(char) ||
           this.openDelimiters.has(char) ||
           this.closeDelimiters.has(char) ||
-          char === '"' || char === "'" || char === '`' ||
           this.isCommentStart(text.substring(i))) {
         break;
       }

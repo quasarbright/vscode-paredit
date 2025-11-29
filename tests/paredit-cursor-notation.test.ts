@@ -78,7 +78,12 @@ describe('Paredit with Cursor Notation', () => {
       expect(doc.toString()).toBe('foo|');
     });
 
-
+    test('multiline regression', () => {
+      const doc = TestDocument.fromString('|(foo bar\n     baz\n\n     boo)');
+      const [_, end] = forwardSexpRange(doc as any, doc.cursor);
+      doc.cursor = end;
+      expect(doc.toString()).toBe('(foo bar\n     baz\n\n     boo)|');
+    })
   });
 
   describe('backwardSexpRange', () => {

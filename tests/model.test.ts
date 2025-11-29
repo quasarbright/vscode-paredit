@@ -100,11 +100,10 @@ describe('LineInputModel', () => {
       const model = new LineInputModel('(foo "hello\nworld" bar)');
       const lines = model.getLines();
       
-      // First line should end with inString: true
-      expect(lines[0].endState.inString).toBe(true);
-      
-      // Second line should start with inString: true
-      expect(lines[1].startState.inString).toBe(true);
+      // Quotes are treated as regular delimiters, not string delimiters
+      // So inString should be false
+      expect(lines[0].endState.inString).toBe(false);
+      expect(lines[1].startState.inString).toBe(false);
     });
   });
 

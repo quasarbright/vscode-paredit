@@ -238,7 +238,7 @@ export function rangeToForwardUpList(doc: EditableDocument, offset: number): Ran
   if (cursor.upList()) {
     // Now move to the matching closing delimiter
     if (cursor.forwardList()) {
-      // Position ON the closing delimiter (not past it)
+      // Position ON the closing delimiter for navigation
       return [offset, cursor.offsetStart];
     }
   }

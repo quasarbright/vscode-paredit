@@ -61,6 +61,17 @@ export class TokenCursor {
     if (this.line < this.lines.length - 1) {
       this.line++;
       this.token = 0;
+      
+      // Skip empty lines (lines with no tokens)
+      while (this.line < this.lines.length && this.lines[this.line].tokens.length === 0) {
+        this.line++;
+      }
+      
+      // Check if we've reached the end
+      if (this.line >= this.lines.length) {
+        return false;
+      }
+      
       return true;
     }
 
@@ -80,6 +91,19 @@ export class TokenCursor {
     // Move to previous line
     if (this.line > 0) {
       this.line--;
+      
+      // Skip empty lines (lines with no tokens)
+      while (this.line >= 0 && this.lines[this.line].tokens.length === 0) {
+        this.line--;
+      }
+      
+      // Check if we've reached the start
+      if (this.line < 0) {
+        this.line = 0;
+        this.token = 0;
+        return false;
+      }
+      
       const prevLine = this.lines[this.line];
       this.token = Math.max(0, prevLine.tokens.length - 1);
       return true;

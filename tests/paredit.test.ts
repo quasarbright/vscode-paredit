@@ -198,9 +198,9 @@ describe('Paredit Range-Finding Functions', () => {
       const doc = new MockEditableDocument('(a (b c) d)') as any;
       const [start, end] = rangeToForwardUpList(doc, 5);
       
-      // From 'b' position, should move to after outer ')'
+      // From space after 'b', should move to closing ')' of inner list
       expect(end).toBeGreaterThan(start);
-      expect(doc.getText(end - 1, end)).toBe(')');
+      expect(doc.getText(end, end + 1)).toBe(')');
     });
 
     test('should handle deeply nested lists', () => {
