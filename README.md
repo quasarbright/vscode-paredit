@@ -299,6 +299,14 @@ If you're using a Vim extension (like VSCodeVim), you can integrate paredit comm
     {
       "before": ["("],
       "commands": ["paredit.backwardUpSexp"]
+    },
+    {
+      "before": [")"],
+      "commands": ["paredit.selectForwardUpSexp"]
+    },
+    {
+      "before": ["("],
+      "commands": ["paredit.selectBackwardUpSexp"]
     }
   ]
 }
@@ -313,11 +321,11 @@ This configuration allows you to:
 - Use `c)` and `c(` to change up to closing/opening delimiter (not including delimiter)
 - Use `yL` and `yH` to yank (copy) forward/backward s-expressions
 - Use `y)` and `y(` to yank up to closing/opening delimiter (not including delimiter)
-- Use `L` and `H` in visual mode to extend selections
+- Use `L`, `H`, `(`, and `)` in visual mode to extend selections
 
 **Note on Clipboard Integration:**
 
-The `dL`, `dH`, `cL`, `cH`, `yL`, and `yH` commands copy text to the system clipboard (controlled by the `paredit.killAlsoCutsToClipboard` setting, which is enabled by default). To make this work seamlessly with Vim's yank/paste commands (`p`, `P`), configure VSCodeVim to use the system clipboard:
+The delete, change, and yank commands copy text to the system clipboard (controlled by the `paredit.killAlsoCutsToClipboard` setting, which is enabled by default). To make this work seamlessly with Vim's yank/paste commands (`p`, `P`), configure VSCodeVim to use the system clipboard:
 
 ```json
 {
