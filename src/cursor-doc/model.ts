@@ -266,10 +266,10 @@ export class EditableDocument {
   private editor: any; // VS Code TextEditor
   private _selections: ModelEditSelection[];
 
-  constructor(editor: any) {
+  constructor(editor: any, scanner?: Scanner) {
     this.editor = editor;
     const text = editor.document.getText();
-    this.model = new LineInputModel(text);
+    this.model = new LineInputModel(text, scanner);
     this._selections = this.convertSelections(editor.selections);
   }
 

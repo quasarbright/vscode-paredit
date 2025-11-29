@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { EditableDocument } from './cursor-doc/model';
+import { Scanner } from './cursor-doc/lexer';
 import * as commands from './commands';
 import * as config from './config';
+import { getCommentSyntaxOrWarn, clearCommentSyntaxCache } from './language-support-vscode';
 
 /**
  * Command wrapper that checks language activation and wraps the editor
@@ -22,8 +24,17 @@ function wrapPareditCommand(
       return;
     }
     
+    // Get language-specific comment syntax (async - reads from extension files)
+    const commentSyntax = await getCommentSyntaxOrWarn(editor.document);
+    
+    // Get delimiters for this language
+    const delimiters = config.getDelimitersForLanguage(editor.document.languageId);
+    
+    // Create scanner with language-specific configuration
+    const scanner = new Scanner(delimiters, commentSyntax);
+    
     // Wrap the editor in EditableDocument
-    const doc = new EditableDocument(editor);
+    const doc = new EditableDocument(editor, scanner);
     
     try {
       await handler(doc);
@@ -51,10 +62,23 @@ export function activate(context: vscode.ExtensionContext) {
   // Set initial context
   updatePareditContext(vscode.window.activeTextEditor);
   
+  // Pre-load comment syntax for the active editor
+  if (vscode.window.activeTextEditor) {
+    getCommentSyntaxOrWarn(vscode.window.activeTextEditor.document).catch(err => {
+      console.error('Failed to load comment syntax:', err);
+    });
+  }
+  
   // Update context when active editor changes
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(editor => {
       updatePareditContext(editor);
+      // Pre-load comment syntax for the new editor
+      if (editor) {
+        getCommentSyntaxOrWarn(editor.document).catch(err => {
+          console.error('Failed to load comment syntax:', err);
+        });
+      }
     })
   );
   
@@ -71,6 +95,21 @@ export function activate(context: vscode.ExtensionContext) {
       updatePareditContext(vscode.window.activeTextEditor);
     })
   );
+  
+  // Clear cache when extensions change (if API is available)
+  if (vscode.extensions && vscode.extensions.onDidChange) {
+    context.subscriptions.push(
+      vscode.extensions.onDidChange(() => {
+        clearCommentSyntaxCache();
+        // Reload for current editor
+        if (vscode.window.activeTextEditor) {
+          getCommentSyntaxOrWarn(vscode.window.activeTextEditor.document).catch(err => {
+            console.error('Failed to reload comment syntax:', err);
+          });
+        }
+      })
+    );
+  }
   
   // Register all navigation commands
   context.subscriptions.push(

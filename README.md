@@ -429,6 +429,30 @@ Define custom delimiter pairs for specific languages. Advanced users can extend 
 
 When true, kill commands (like `Ctrl+K`) also copy the deleted text to the clipboard, making them work like cut operations.
 
+## Language Support
+
+The extension automatically reads comment syntax from your installed language extensions, ensuring accurate structural editing for any language.
+
+### How It Works
+
+1. **Reads from Language Extensions**: When you open a file, the extension finds the language extension (e.g., Racket, Python, JavaScript) and reads its comment configuration
+2. **Fallback**: If no language extension is found, uses Lisp/Racket style comments (semicolon) as default
+3. **Result**: Language-specific syntax is correctly handled
+
+### Examples
+
+- **Racket**: `#t` and `#f` are boolean literals, not comments ✓
+- **Python**: `#` starts a comment (when Python extension is installed) ✓
+- **JavaScript**: `//` and `/* */` are comments, `#` is not ✓
+
+### Default Behavior
+
+Without a language extension, the extension uses Lisp/Racket comment syntax:
+- Line comments: `;`
+- Block comments: `#|` and `|#`
+
+This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in Lisp-family languages.
+
 ## Troubleshooting
 
 ### Commands Not Working

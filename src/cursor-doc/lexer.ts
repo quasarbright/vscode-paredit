@@ -43,19 +43,26 @@ export const DEFAULT_DELIMITERS: DelimiterPair[] = [
 /**
  * Scanner class that tokenizes a line of text
  */
+export interface CommentSyntax {
+  lineComment?: string;
+  blockComment?: [string, string];
+}
+
 export class Scanner {
   private delimiters: DelimiterPair[];
   private openDelimiters: Set<string>;
   private closeDelimiters: Set<string>;
   private symmetricDelimiters: Set<string>; // Delimiters where open === close
+  private commentSyntax?: CommentSyntax;
 
-  constructor(delimiters: DelimiterPair[] = DEFAULT_DELIMITERS) {
+  constructor(delimiters: DelimiterPair[] = DEFAULT_DELIMITERS, commentSyntax?: CommentSyntax) {
     this.delimiters = delimiters;
     this.openDelimiters = new Set(delimiters.map(d => d.open));
     this.closeDelimiters = new Set(delimiters.map(d => d.close));
     this.symmetricDelimiters = new Set(
       delimiters.filter(d => d.open === d.close).map(d => d.open)
     );
+    this.commentSyntax = commentSyntax;
   }
 
   /**
@@ -81,7 +88,7 @@ export class Scanner {
         const token = this.scanWhitespace(remaining, offset, state);
         tokens.push(token);
         offset += token.raw.length;
-      } else if (this.isCommentStart(remaining)) {
+      } else if (this.isCommentStart(remaining, this.commentSyntax)) {
         // Comment - consume rest of line
         const token = this.scanComment(remaining, offset, state);
         tokens.push(token);
@@ -202,9 +209,42 @@ export class Scanner {
   }
 
   private scanComment(text: string, offset: number, state: ScannerState): Token {
-    // Support multiple comment styles
+    // Use language-specific comment syntax if available
+    if (this.commentSyntax) {
+      // Check for line comment
+      if (this.commentSyntax.lineComment && text.startsWith(this.commentSyntax.lineComment)) {
+        return {
+          type: 'comment',
+          raw: text,
+          offset,
+          state: { ...state }
+        };
+      }
+      
+      // Check for block comment
+      if (this.commentSyntax.blockComment && text.startsWith(this.commentSyntax.blockComment[0])) {
+        const endIndex = text.indexOf(this.commentSyntax.blockComment[1]);
+        if (endIndex !== -1) {
+          return {
+            type: 'comment',
+            raw: text.substring(0, endIndex + this.commentSyntax.blockComment[1].length),
+            offset,
+            state: { ...state }
+          };
+        } else {
+          // Block comment continues beyond this line
+          return {
+            type: 'comment',
+            raw: text,
+            offset,
+            state: { ...state }
+          };
+        }
+      }
+    }
+    
+    // Fallback to common comment styles
     if (text.startsWith('//')) {
-      // Line comment - consume rest of line
       return {
         type: 'comment',
         raw: text,
@@ -212,7 +252,6 @@ export class Scanner {
         state: { ...state }
       };
     } else if (text.startsWith('/*')) {
-      // Block comment
       const endIndex = text.indexOf('*/');
       if (endIndex !== -1) {
         return {
@@ -222,7 +261,6 @@ export class Scanner {
           state: { ...state }
         };
       } else {
-        // Block comment continues beyond this line
         return {
           type: 'comment',
           raw: text,
@@ -231,7 +269,6 @@ export class Scanner {
         };
       }
     } else if (text.startsWith(';')) {
-      // Lisp-style comment
       return {
         type: 'comment',
         raw: text,
@@ -239,7 +276,6 @@ export class Scanner {
         state: { ...state }
       };
     } else if (text.startsWith('#')) {
-      // Python/Ruby-style comment
       return {
         type: 'comment',
         raw: text,
@@ -267,7 +303,7 @@ export class Scanner {
       if (this.isWhitespace(char) ||
           this.openDelimiters.has(char) ||
           this.closeDelimiters.has(char) ||
-          this.isCommentStart(text.substring(i))) {
+          this.isCommentStart(text.substring(i), this.commentSyntax)) {
         break;
       }
 
@@ -296,11 +332,25 @@ export class Scanner {
     return /\s/.test(char);
   }
 
-  private isCommentStart(text: string): boolean {
-    return text.startsWith('//') ||
-           text.startsWith('/*') ||
-           text.startsWith(';') ||
-           text.startsWith('#');
+  private isCommentStart(text: string, commentSyntax?: { lineComment?: string; blockComment?: [string, string] }): boolean {
+    if (!commentSyntax) {
+      // Fallback to common patterns if no language config provided
+      return text.startsWith('//') ||
+             text.startsWith('/*') ||
+             text.startsWith(';') ||
+             text.startsWith('#');
+    }
+    
+    // Use language-specific comment syntax
+    if (commentSyntax.lineComment && text.startsWith(commentSyntax.lineComment)) {
+      return true;
+    }
+    
+    if (commentSyntax.blockComment && text.startsWith(commentSyntax.blockComment[0])) {
+      return true;
+    }
+    
+    return false;
   }
 
   /**
