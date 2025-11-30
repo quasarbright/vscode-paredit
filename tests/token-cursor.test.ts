@@ -2,8 +2,12 @@
  * Tests for TokenCursor and LispTokenCursor
  */
 
+/// <reference types="jest" />
+
 import { Scanner } from '../src/cursor-doc/lexer';
 import { TokenCursor, LispTokenCursor, TextLine } from '../src/cursor-doc/token-cursor';
+
+const { expect } = require('@jest/globals');
 
 describe('TokenCursor', () => {
   let scanner: Scanner;

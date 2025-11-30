@@ -82,22 +82,31 @@ export function getDelimitersForLanguage(languageId: string): DelimiterPair[] {
   
   // 2. Try to get brackets from VS Code's language extension
   try {
-    const { getBracketPairs } = require('./cursor-doc/language-config');
-    const brackets: DelimiterPair[] = getBracketPairs(languageId);
+    const { getLanguageConfig } = require('./cursor-doc/language-config');
+    const langConfig = getLanguageConfig(languageId);
     
-    if (brackets && brackets.length > 0) {
-      // Add string delimiters to the bracket pairs from the language
-      // Most languages don't define quotes as brackets, but we need them for paredit
-      const result = [...brackets];
+    if (langConfig && langConfig.brackets && langConfig.brackets.length > 0) {
+      // Start with brackets from the language extension
+      const result = [...langConfig.brackets];
       
-      const hasDoubleQuote = brackets.some((b: DelimiterPair) => b.open === '"' && b.close === '"');
+      // Add double quotes if not already present (most languages use them)
+      const hasDoubleQuote = result.some((b: DelimiterPair) => b.open === '"' && b.close === '"');
       if (!hasDoubleQuote) {
         result.push({ open: '"', close: '"' });
       }
       
-      // Note: We do NOT automatically add single quotes because they have different
-      // meanings in different languages. If a language uses ' for strings, it should
-      // be in the language extension's bracket configuration.
+      // Check if the language uses single quotes for strings by looking at autoClosingPairs
+      // This is language-agnostic - we check what the language extension defines
+      const hasSingleQuote = result.some((b: DelimiterPair) => b.open === "'" && b.close === "'");
+      if (!hasSingleQuote && langConfig.autoClosingPairs) {
+        // Check if single quote is in autoClosingPairs (indicates it's used for strings)
+        const usesSingleQuote = langConfig.autoClosingPairs.some(
+          (pair: any) => pair.open === "'" && pair.close === "'"
+        );
+        if (usesSingleQuote) {
+          result.push({ open: "'", close: "'" });
+        }
+      }
       
       return result;
     }

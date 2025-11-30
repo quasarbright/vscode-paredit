@@ -10,6 +10,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DEFAULT_DELIMITERS } from './lexer';
 
 /**
  * Comment configuration for a language
@@ -28,17 +29,32 @@ export interface BracketPair {
 }
 
 /**
+ * Auto-closing pair configuration
+ */
+export interface AutoClosingPair {
+  open: string;
+  close: string;
+  notIn?: string[];
+}
+
+/**
  * Full language configuration
  */
 export interface LanguageConfig {
   comments: CommentConfig | null;
   brackets: BracketPair[];
+  autoClosingPairs?: AutoClosingPair[];
 }
 
 /**
  * Cache of language configurations
  */
 const configCache = new Map<string, LanguageConfig | null>();
+
+/**
+ * Track which languages we've warned about (to avoid duplicate warnings)
+ */
+const warnedLanguages = new Set<string>();
 
 /**
  * Get full language configuration for a language by querying VS Code's extensions
@@ -67,10 +83,22 @@ export function getCommentConfig(languageId: string): CommentConfig | null {
 
 /**
  * Get bracket pairs for a language (convenience method)
+ * Falls back to default delimiters if no language extension found
  */
 export function getBracketPairs(languageId: string): BracketPair[] {
   const config = getLanguageConfig(languageId);
-  return config?.brackets || [];
+  
+  // If no config found or no brackets defined, fall back to defaults
+  if (!config || !config.brackets || config.brackets.length === 0) {
+    // Only log warning once per language
+    if (!warnedLanguages.has(languageId)) {
+      console.warn(`No language extension found for '${languageId}', using default delimiters`);
+      warnedLanguages.add(languageId);
+    }
+    return DEFAULT_DELIMITERS;
+  }
+  
+  return config.brackets;
 }
 
 /**
@@ -113,7 +141,7 @@ function loadLanguageConfig(languageId: string): LanguageConfig | null {
               }
             }
             
-            // Also check autoClosingPairs as fallback
+            // Also check autoClosingPairs as fallback for brackets
             if (brackets.length === 0 && config.autoClosingPairs && Array.isArray(config.autoClosingPairs)) {
               for (const pair of config.autoClosingPairs) {
                 if (pair.open && pair.close) {
@@ -122,7 +150,21 @@ function loadLanguageConfig(languageId: string): LanguageConfig | null {
               }
             }
             
-            return { comments, brackets };
+            // Extract autoClosingPairs (for detecting string delimiters)
+            const autoClosingPairs: AutoClosingPair[] = [];
+            if (config.autoClosingPairs && Array.isArray(config.autoClosingPairs)) {
+              for (const pair of config.autoClosingPairs) {
+                if (pair.open && pair.close) {
+                  autoClosingPairs.push({
+                    open: pair.open,
+                    close: pair.close,
+                    notIn: pair.notIn
+                  });
+                }
+              }
+            }
+            
+            return { comments, brackets, autoClosingPairs };
           } catch (error) {
             // Failed to read or parse config file
             continue;
@@ -140,22 +182,40 @@ function loadLanguageConfig(languageId: string): LanguageConfig | null {
 /**
  * Parse JSON with comments (JSONC format)
  * VS Code language configuration files use JSONC format
+ * 
+ * Note: We use a simple approach that just tries JSON.parse first,
+ * since most config files are valid JSON. If that fails, we strip
+ * comments more carefully.
  */
 function parseJsonWithComments(content: string): any {
   try {
-    // Remove single-line comments
-    let cleaned = content.replace(/\/\/.*$/gm, '');
-    
-    // Remove multi-line comments
-    cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
-    
-    // Remove trailing commas (common in JSONC)
-    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
-    
-    return JSON.parse(cleaned);
-  } catch (error) {
-    // If parsing fails, return empty object
-    return {};
+    // First, try parsing as-is (many config files are valid JSON)
+    return JSON.parse(content);
+  } catch (firstError) {
+    try {
+      // If that fails, try stripping comments
+      // This is a simplified approach - a full JSONC parser would be better
+      // but this handles the common cases
+      
+      let cleaned = content;
+      
+      // Remove single-line comments (but not inside strings)
+      // This regex is imperfect but works for most cases
+      cleaned = cleaned.replace(/(?:^|\s)\/\/.*$/gm, '');
+      
+      // Remove multi-line comments (but not inside strings)
+      // This is tricky - we use a simple heuristic: only remove /* */ 
+      // if they're not inside quotes
+      // For now, we'll skip this since it's error-prone
+      
+      // Remove trailing commas (common in JSONC)
+      cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+      
+      return JSON.parse(cleaned);
+    } catch (secondError) {
+      // If parsing still fails, return empty object
+      return {};
+    }
   }
 }
 
@@ -164,4 +224,5 @@ function parseJsonWithComments(content: string): any {
  */
 export function clearConfigCache(): void {
   configCache.clear();
+  warnedLanguages.clear();
 }

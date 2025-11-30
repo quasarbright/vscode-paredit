@@ -2,6 +2,8 @@
  * Configuration Manager Tests
  */
 
+/// <reference types="jest" />
+
 // Mock vscode module before importing config
 const mockGetConfiguration = jest.fn();
 const mockOnDidChangeConfiguration = jest.fn();
@@ -194,8 +196,8 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
-      // Note: Single quotes are NOT in default delimiters
-      // They should come from language extension configuration
+      // Note: When language extension is not found, we fall back to DEFAULT_DELIMITERS
+      // which doesn't include single quotes (they come from the language extension's autoClosingPairs)
       expect(delimiters).toEqual([
         { open: '(', close: ')' },
         { open: '[', close: ']' },
@@ -240,8 +242,8 @@ describe('Configuration Manager', () => {
 
       const delimiters = getDelimitersForLanguage('javascript');
 
-      // Note: Single quotes are NOT in default delimiters
-      // They should come from language extension configuration
+      // Note: When language extension is not found, we fall back to DEFAULT_DELIMITERS
+      // which doesn't include single quotes (they come from the language extension's autoClosingPairs)
       expect(delimiters).toEqual([
         { open: '(', close: ')' },
         { open: '[', close: ']' },

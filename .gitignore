@@ -6,3 +6,8 @@ node_modules
 .DS_Store
 coverage
 calva/
+test-workspace/**/*.js
+test-workspace/**/*.ts
+test-workspace/**/*.rkt
+!test-workspace/README.md
+!test-workspace/.vscode/

@@ -316,6 +316,20 @@ export class EditableDocument {
   }
 
   /**
+   * Get the first cursor position (active position of first selection)
+   */
+  get cursor(): number {
+    return this._selections.length > 0 ? this._selections[0].active : 0;
+  }
+
+  /**
+   * Set the first cursor position (creates a single zero-width selection)
+   */
+  set cursor(offset: number) {
+    this.selections = [new ModelEditSelection(offset, offset)];
+  }
+
+  /**
    * Get a token cursor at the specified offset
    */
   getTokenCursor(offset: number = 0): LispTokenCursor {

@@ -2,6 +2,8 @@
  * Tests for paredit operations
  */
 
+/// <reference types="jest" />
+
 import { 
   forwardSexpRange,
   backwardSexpRange,

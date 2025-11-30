@@ -2,6 +2,8 @@
  * Tests for EditableDocument
  */
 
+/// <reference types="jest" />
+
 import { EditableDocument, ModelEditSelection, ModelEdit } from '../src/cursor-doc/model';
 
 /**

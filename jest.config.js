@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests'],
   testMatch: ['**/*.test.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/integration/'],
   moduleFileExtensions: ['ts', 'js'],
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -10,4 +11,7 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   verbose: true,
+  moduleNameMapper: {
+    '^vscode$': '<rootDir>/tests/__mocks__/vscode.ts'
+  }
 };

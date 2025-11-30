@@ -554,6 +554,30 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
 
 3. Review the command descriptions in the Keybindings section above
 
+### Integration Test Issues
+
+**Problem**: Integration tests fail or timeout.
+
+**Solutions**:
+1. Ensure you've compiled the tests:
+   ```bash
+   npm run compile:tests
+   ```
+
+2. Check that VS Code can download (requires internet connection):
+   - VS Code is downloaded to `.vscode-test/` directory
+   - Downloaded from `https://update.code.visualstudio.com/`
+
+3. On Linux, ensure Xvfb is available for headless testing:
+   ```bash
+   sudo apt-get install xvfb
+   ```
+
+4. If you see "No language extension found" warnings:
+   - This is expected for optional extensions (like Racket)
+   - Tests will still pass using default delimiters
+   - JavaScript/TypeScript tests always work (built-in)
+
 ### Getting Help
 
 If you encounter issues not covered here:
@@ -584,9 +608,19 @@ npm run compile
 
 ### Test
 
+Run unit tests (fast, ~1 second):
+```bash
+npm run test:unit
+```
+
+Run integration tests (slower, ~4 seconds):
+```bash
+npm run test:integration
+```
+
 Run all tests:
 ```bash
-npm test
+npm run test:all
 ```
 
 Run tests in watch mode:
@@ -601,10 +635,57 @@ npm run test:coverage
 
 #### Test Structure
 
-All tests are organized in a single `tests/` directory:
-- `tests/extension.test.ts` - Extension activation tests
+The project uses two test systems:
+
+**Unit Tests** (Jest, in `tests/` directory):
 - `tests/lexer.test.ts` - Lexer and tokenization tests
 - `tests/token-cursor.test.ts` - Token cursor navigation tests
+- `tests/model.test.ts` - Line input model tests
+- `tests/config.test.ts` - Configuration tests
+- `tests/delimiters.test.ts` - Delimiter configuration tests
+- `tests/extension.test.ts` - Extension activation tests
+- Fast execution (~1 second), no VS Code dependency
+
+**Integration Tests** (Mocha, in `tests/integration/` directory):
+- `tests/integration/suite/paredit-integration.test.ts` - All paredit operations with real VS Code documents
+- `tests/integration/suite/test-helpers.test.ts` - Test helper function tests
+- Tests real VS Code integration with actual language extensions
+- Uses cursor notation for easy test writing (e.g., `"(foo bar|) baz"`)
+- Slower execution (~4 seconds), requires VS Code test environment
+
+#### Adding New Integration Tests
+
+Integration tests use cursor notation for concise test syntax. Here's how to add a new test:
+
+```typescript
+import * as assert from 'assert';
+import { createDocumentWithCursor, getDocumentWithCursor, closeDocument } from './test-helpers';
+
+describe('My Feature', () => {
+  it('should do something', async () => {
+    // Create document with cursor at position marked by "|"
+    const { editor, doc } = await createDocumentWithCursor("|(foo bar)", 'javascript');
+    
+    // Perform operations using EditableDocument
+    const model = doc.getModel();
+    
+    // Verify results using cursor notation
+    assert.strictEqual(getDocumentWithCursor(editor), '|(foo bar)');
+    
+    // Always clean up
+    await closeDocument();
+  });
+});
+```
+
+**Key points:**
+- Use `"|"` to mark cursor positions in test strings
+- `createDocumentWithCursor()` returns an `EditableDocument` (our existing class)
+- `getDocumentWithCursor()` formats the current state with cursor notation
+- Always call `closeDocument()` after each test
+- Supports multiple cursors: `"(|foo) (|bar)"`
+
+See `tests/integration/README.md` for detailed documentation.
 
 ### Run Extension
 

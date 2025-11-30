@@ -5,9 +5,9 @@
 ## Phase 1: Foundation (Estimated: 4-6 hours)
 
 ### Task 1.1: Extract Cursor Notation Utilities
-- [ ] Move `parseCursorString()` and `formatCursorString()` to shared location
-- [ ] Make them available to both Jest and Mocha tests
-- [ ] Verify existing tests still pass
+- [x] Move `parseCursorString()` and `formatCursorString()` to shared location
+- [x] Make them available to both Jest and Mocha tests
+- [x] Verify existing tests still pass
 
 **Acceptance Criteria:**
 - Cursor notation functions are reusable
@@ -16,12 +16,12 @@
 - No duplication
 
 ### Task 1.2: Set Up VS Code Test Environment
-- [ ] Install `@vscode/test-electron` and `@vscode/test-cli`
-- [ ] Create `src/test/suite/index.ts` (Mocha test runner)
-- [ ] Create `src/test/runTest.ts` (test launcher)
-- [ ] Add `.vscode-test` to `.gitignore`
-- [ ] Add `test:integration` script to package.json
-- [ ] Configure VS Code test workspace
+- [x] Install `@vscode/test-electron` and `@vscode/test-cli`
+- [x] Create `src/test/suite/index.ts` (Mocha test runner)
+- [x] Create `src/test/runTest.ts` (test launcher)
+- [x] Add `.vscode-test` to `.gitignore`
+- [x] Add `test:integration` script to package.json
+- [x] Configure VS Code test workspace
 
 **Acceptance Criteria:**
 - Can run `npm run test:integration` to launch VS Code tests
@@ -32,10 +32,10 @@
 **Reference:** https://code.visualstudio.com/api/working-with-extensions/testing-extension
 
 ### Task 1.3: Add Fallback for Missing Language Extensions
-- [ ] Update `language-config.ts` to handle missing extensions gracefully
-- [ ] Return default delimiters `() [] {} ""` when extension not found
-- [ ] Add logging/warning when falling back to defaults
-- [ ] Test fallback behavior
+- [x] Update `language-config.ts` to handle missing extensions gracefully
+- [x] Return default delimiters `() [] {} ""` when extension not found
+- [x] Add logging/warning when falling back to defaults
+- [x] Test fallback behavior
 
 **Acceptance Criteria:**
 - Tests work even if Racket extension not installed
@@ -44,11 +44,11 @@
 - No test failures due to missing extensions
 
 ### Task 1.4: Create Test Helper Functions
-- [ ] Create `src/test/suite/test-helpers.ts`
-- [ ] Implement `createDocumentWithCursor()` - parses cursor notation, creates VS Code doc
-- [ ] Implement `getDocumentWithCursor()` - formats document with cursor notation
-- [ ] Implement `closeDocument()` - cleanup helper
-- [ ] Reuse existing `parseCursorString()` and `formatCursorString()` from test-utils
+- [x] Create `tests/integration/suite/test-helpers.ts`
+- [x] Implement `createDocumentWithCursor()` - parses cursor notation, creates VS Code doc
+- [x] Implement `getDocumentWithCursor()` - formats document with cursor notation
+- [x] Implement `closeDocument()` - cleanup helper
+- [x] Reuse existing `parseCursorString()` and `formatCursorString()` from test-utils
 
 **Acceptance Criteria:**
 - Helper functions create real VS Code documents
@@ -60,16 +60,16 @@
 ## Phase 2: Convert All Cursor Notation Tests (Estimated: 4-6 hours)
 
 ### Task 2.1: Convert Cursor Notation Tests to Mocha
-- [ ] Create `src/test/suite/paredit-integration.test.ts`
-- [ ] Copy all tests from `tests/paredit-cursor-notation.test.ts`
-- [ ] Convert Jest syntax to Mocha (`describe` → `suite`, `it` → `test`)
-- [ ] Replace `TestDocument` with `RealDocument`
-- [ ] Add proper setup/teardown (close documents after each test)
-- [ ] Ensure all 110+ tests are converted
+- [x] Create `src/test/suite/paredit-integration.test.ts`
+- [x] Copy all tests from `tests/paredit-cursor-notation.test.ts`
+- [x] Convert Jest syntax to Mocha (`describe` → `suite`, `it` → `test`)
+- [x] Use helper functions (`createDocumentWithCursor`, `getDocumentWithCursor`) with `EditableDocument`
+- [x] Add proper setup/teardown (close documents after each test)
+- [x] Ensure all 110+ tests are converted
 
 **Acceptance Criteria:**
 - All cursor notation tests converted to Mocha
-- Tests use RealDocument instead of TestDocument
+- Tests use helper functions with real VS Code documents and `EditableDocument`
 - Tests use cursor notation (same format)
 - Tests pass with real VS Code documents
 - Proper cleanup after each test (documents closed)
@@ -89,10 +89,10 @@
 - Tests demonstrate real language extension integration
 
 ### Task 2.3: Remove TestDocument (Optional)
-- [ ] Decide if TestDocument should be removed or kept
-- [ ] If keeping: document when to use TestDocument vs RealDocument
-- [ ] If removing: delete TestDocument class and old tests
-- [ ] Update documentation
+- [x] Decide if TestDocument should be removed or kept
+- [ ] If keeping: document when to use TestDocument vs integration tests
+- [x] If removing: delete TestDocument class and old tests
+- [-] Update documentation
 
 **Acceptance Criteria:**
 - Clear decision made
@@ -158,10 +158,10 @@
 ```
 
 ### Task 4.2: Documentation
-- [ ] Document how to run integration tests locally
-- [ ] Document how to add new integration tests
-- [ ] Document mock language extension system
-- [ ] Update README with testing information
+- [x] Document how to run integration tests locally
+- [x] Document how to add new integration tests
+- [x] Document mock language extension system
+- [x] Update README with testing information
 
 **Acceptance Criteria:**
 - Clear documentation for developers
@@ -220,7 +220,7 @@
 
 ## Success Metrics
 
-- [ ] All 110+ cursor notation tests converted to use RealDocument
+- [ ] All 110+ cursor notation tests converted to use helper functions with `EditableDocument`
 - [ ] All tests passing with real VS Code documents
 - [ ] Language configuration verified for JavaScript/TypeScript and Racket
 - [ ] Fallback to default delimiters when extension not installed

@@ -1,0 +1,9 @@
+{
+  "paredit.enabledLanguages": [
+    "javascript",
+    "typescript",
+    "racket",
+    "lisp",
+    "scheme"
+  ]
+}

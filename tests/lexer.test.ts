@@ -2,6 +2,8 @@
  * Tests for the lexer and tokenization system
  */
 
+/// <reference types="jest" />
+
 import { Scanner } from '../src/cursor-doc/lexer';
 
 describe('Scanner', () => {
