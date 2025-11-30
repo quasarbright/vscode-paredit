@@ -2,7 +2,7 @@
   "name": "paredit",
   "displayName": "Mike's Paredit",
   "description": "Structural S-Expression editing with Paredit commands",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "MikeDelmonaco",
   "repository": {
     "url": "https://github.com/quasarbright/vscode-paredit",
@@ -51,48 +51,144 @@
           "type": "object",
           "default": {
             "javascript": [
-              {"open": "(", "close": ")"},
-              {"open": "[", "close": "]"},
-              {"open": "{", "close": "}"},
-              {"open": "<", "close": ">"},
-              {"open": "\"", "close": "\""},
-              {"open": "'", "close": "'"},
-              {"open": "`", "close": "`"}
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
             ],
             "typescript": [
-              {"open": "(", "close": ")"},
-              {"open": "[", "close": "]"},
-              {"open": "{", "close": "}"},
-              {"open": "<", "close": ">"},
-              {"open": "\"", "close": "\""},
-              {"open": "'", "close": "'"},
-              {"open": "`", "close": "`"}
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
             ],
             "javascriptreact": [
-              {"open": "(", "close": ")"},
-              {"open": "[", "close": "]"},
-              {"open": "{", "close": "}"},
-              {"open": "<", "close": ">"},
-              {"open": "\"", "close": "\""},
-              {"open": "'", "close": "'"},
-              {"open": "`", "close": "`"}
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
             ],
             "typescriptreact": [
-              {"open": "(", "close": ")"},
-              {"open": "[", "close": "]"},
-              {"open": "{", "close": "}"},
-              {"open": "<", "close": ">"},
-              {"open": "\"", "close": "\""},
-              {"open": "'", "close": "'"},
-              {"open": "`", "close": "`"}
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
             ],
             "html": [
-              {"open": "\"", "close": "\""},
-              {"open": "<", "close": ">"}
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
             ],
             "xml": [
-              {"open": "\"", "close": "\""},
-              {"open": "<", "close": ">"}
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
             ]
           },
           "description": "Language-scoped custom delimiter pairs. Example: {\"html\": [{\"open\": \"<\", \"close\": \">\"}, {\"open\": \"(\", \"close\": \")\"}]}."
