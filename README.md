@@ -22,7 +22,7 @@ This extension extracts the core structural editing capabilities from Calva and 
 
 ## Quick Start
 
-1. Install the extension
+1. Install the extension [here](https://marketplace.visualstudio.com/items?itemName=MikeDelmonaco.paredit)
 2. Open a file with balanced delimiters (JavaScript, JSON, Lisp, etc.)
 3. The extension activates automatically for configured languages
 4. Try these commands:
