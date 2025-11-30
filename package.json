@@ -4,6 +4,15 @@
   "description": "Structural editing with paredit commands",
   "version": "0.1.0",
   "publisher": "MikeDelmonaco",
+  "repository": {
+    "url": "https://github.com/quasarbright/vscode-paredit",
+    "type": "git"
+  },
+  "author": {
+    "email": "mdelmonacochs@gmail.com",
+    "name": "Mike Delmonaco",
+    "url": "https://quasarbright.github.io"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
