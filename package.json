@@ -31,7 +31,9 @@
           "type": "array",
           "default": [
             "javascript",
+            "javascriptreact",
             "typescript",
+            "typescriptreact",
             "json",
             "clojure",
             "lisp",
@@ -47,8 +49,53 @@
         },
         "paredit.customDelimiters": {
           "type": "object",
-          "default": {},
-          "description": "Language-specific delimiter pairs. Example: {\"html\": [{\"open\": \"<\", \"close\": \">\"}, {\"open\": \"(\", \"close\": \")\"}]}. Default delimiters are: (), [], {}, and \"\"."
+          "default": {
+            "javascript": [
+              {"open": "(", "close": ")"},
+              {"open": "[", "close": "]"},
+              {"open": "{", "close": "}"},
+              {"open": "<", "close": ">"},
+              {"open": "\"", "close": "\""},
+              {"open": "'", "close": "'"},
+              {"open": "`", "close": "`"}
+            ],
+            "typescript": [
+              {"open": "(", "close": ")"},
+              {"open": "[", "close": "]"},
+              {"open": "{", "close": "}"},
+              {"open": "<", "close": ">"},
+              {"open": "\"", "close": "\""},
+              {"open": "'", "close": "'"},
+              {"open": "`", "close": "`"}
+            ],
+            "javascriptreact": [
+              {"open": "(", "close": ")"},
+              {"open": "[", "close": "]"},
+              {"open": "{", "close": "}"},
+              {"open": "<", "close": ">"},
+              {"open": "\"", "close": "\""},
+              {"open": "'", "close": "'"},
+              {"open": "`", "close": "`"}
+            ],
+            "typescriptreact": [
+              {"open": "(", "close": ")"},
+              {"open": "[", "close": "]"},
+              {"open": "{", "close": "}"},
+              {"open": "<", "close": ">"},
+              {"open": "\"", "close": "\""},
+              {"open": "'", "close": "'"},
+              {"open": "`", "close": "`"}
+            ],
+            "html": [
+              {"open": "\"", "close": "\""},
+              {"open": "<", "close": ">"}
+            ],
+            "xml": [
+              {"open": "\"", "close": "\""},
+              {"open": "<", "close": ">"}
+            ]
+          },
+          "description": "Language-scoped custom delimiter pairs. Example: {\"html\": [{\"open\": \"<\", \"close\": \">\"}, {\"open\": \"(\", \"close\": \")\"}]}."
         },
         "paredit.killAlsoCutsToClipboard": {
           "type": "boolean",
