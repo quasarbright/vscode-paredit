@@ -16,11 +16,9 @@ This extension extracts the core structural editing capabilities from Calva and 
 
 - **Structure-Aware Navigation**: Move through code by s-expressions (balanced structures) rather than characters or words
 - **Smart Selection**: Select entire code blocks with a single command, expand/contract selections hierarchically
-- **Structural Manipulation**: Slurp, barf, raise, splice, and wrap operations that maintain balanced delimiters
+- **Structural Manipulation**: Slurp, barf, raise, splice, transpose, and wrap operations that maintain balanced delimiters
 - **Safe Editing**: Kill and copy operations that preserve code structure
-- **Vim-Compatible**: Optional vim-style keybindings (H, J, K, L) for navigation
-- **Multi-Cursor Support**: Apply structural edits across multiple cursors simultaneously (optional)
-- **Language-Agnostic**: Works with JavaScript, TypeScript, JSON, Lisp, Scheme, Racket, and any language with balanced delimiters
+- **Language-Agnostic**: Works with JavaScript, TypeScript, JSON, Lisp, Scheme, Racket, Clojure, and any language with balanced delimiters
 
 ## Quick Start
 
@@ -30,72 +28,8 @@ This extension extracts the core structural editing capabilities from Calva and 
 4. Try these commands:
    - `Alt+W` - Select the current form
    - `Alt+L` / `Alt+H` - Navigate forward/backward through expressions
-   - `Ctrl+Alt+Right` - Slurp (pull next expression into current list)
+   - `Alt+Shift+.` - Slurp (pull next expression into current list)
    - `Alt+R` - Raise (replace parent with current expression)
-
-## Usage Examples
-
-### Example 1: Slurping and Barfing
-
-Transform this:
-```javascript
-const result = (add(a, b)) + c;
-```
-
-Place cursor inside `(add(a, b))` and press `Ctrl+Alt+Right` (slurp forward):
-```javascript
-const result = (add(a, b) + c);
-```
-
-Press `Ctrl+Alt+Shift+Right` (barf forward) to push it back out:
-```javascript
-const result = (add(a, b)) + c;
-```
-
-### Example 2: Raising
-
-Transform this:
-```javascript
-const value = Math.max(10, Math.min(x, 100));
-```
-
-Place cursor on `Math.min(x, 100)` and press `Alt+R` (raise):
-```javascript
-const value = Math.min(x, 100);
-```
-
-### Example 3: Wrapping
-
-Transform this:
-```javascript
-const items = a, b, c;
-```
-
-Select `a, b, c` and press `Alt+Shift+[` (wrap with brackets):
-```javascript
-const items = [a, b, c];
-```
-
-### Example 4: Smart Navigation
-
-In deeply nested code:
-```javascript
-function process(data) {
-  return data.map(item => {
-    return transform(item.value);
-  });
-}
-```
-
-Use `Alt+L` to jump between expressions, `Alt+K` to move up to parent structures, and `Alt+J` to move down into nested structures.
-
-<!-- TODO: Add animated GIFs demonstrating:
-- Slurp and barf operations
-- Raise and splice transformations
-- Smart navigation through nested structures
-- Selection expansion/contraction
-- Wrapping operations
--->
 
 ## Keybindings
 
@@ -139,10 +73,10 @@ Transform code structure while maintaining balance:
 
 | Command | Keybinding | Description |
 |---------|------------|-------------|
-| Slurp Forward | `Ctrl+Alt+Right` or `Ctrl+Shift+.` | Pull next sexp into current list |
-| Slurp Backward | `Ctrl+Alt+Left` or `Ctrl+Shift+,` | Pull previous sexp into current list |
-| Barf Forward | `Ctrl+Alt+Shift+Right` or `Ctrl+.` | Push last sexp out of current list |
-| Barf Backward | `Ctrl+Alt+Shift+Left` or `Ctrl+,` | Push first sexp out of current list |
+| Slurp Forward | `Alt+Shift+.` | Pull next sexp into current list |
+| Slurp Backward | `Ctrl+Shift+,` | Pull previous sexp into current list |
+| Barf Forward | `Alt+Shift+,` | Push last sexp out of current list |
+| Barf Backward | `Ctrl+Shift+.` | Push first sexp out of current list |
 | Raise Sexp | `Alt+R` | Replace parent sexp with current sexp |
 | Splice Sexp | `Alt+S` | Remove delimiters of current sexp |
 | Transpose Sexp | `Alt+T` | Swap current sexp with next sexp |
@@ -188,16 +122,6 @@ Alternatively, edit your `keybindings.json` file directly:
   "when": "editorTextFocus && paredit.isActive"
 }
 ```
-
-### Vim-Compatible Mode
-
-The extension defaults to vim-compatible keybindings using `H`, `J`, `K`, `L` with the `Alt` modifier for navigation. This can be controlled with the `paredit.vimMode` setting (enabled by default).
-
-The vim-style navigation keys are:
-- `Alt+H` - Backward (left)
-- `Alt+L` - Forward (right)
-- `Alt+K` - Up
-- `Alt+J` - Down
 
 ## Vim Integration
 
@@ -349,7 +273,7 @@ Configure the extension through VS Code settings (`Ctrl+,` or `Cmd+,` on Mac):
 ### `paredit.enabledLanguages`
 
 **Type**: `array`  
-**Default**: `["javascript", "typescript", "json", "lisp", "scheme", "racket"]`
+**Default**: `["javascript", "typescript", "json", "clojure", "lisp", "scheme", "racket"]`
 
 List of language IDs where paredit commands are active. The extension automatically activates when you open files in these languages.
 
@@ -382,45 +306,26 @@ Additional file extensions where paredit commands are active. Useful for custom 
 }
 ```
 
-### `paredit.vimMode`
-
-**Type**: `boolean`  
-**Default**: `true`
-
-Enable vim-compatible keybindings using H, J, K, L with the Alt modifier for navigation.
-
-- `Alt+H` - Backward (left)
-- `Alt+L` - Forward (right)
-- `Alt+K` - Up
-- `Alt+J` - Down
-
-Set to `false` if these keybindings conflict with your workflow.
-
-### `paredit.multicursor`
-
-**Type**: `boolean`  
-**Default**: `false`
-
-Enable multi-cursor support for paredit commands. When enabled, structural editing commands apply to all active cursors simultaneously.
-
-**Example use case**: Select multiple function calls and wrap them all with brackets at once.
-
 ### `paredit.customDelimiters`
 
 **Type**: `object`  
 **Default**: `{}`
 
-Define custom delimiter pairs for specific languages. Advanced users can extend delimiter matching beyond the default `()`, `[]`, `{}`.
+Define custom delimiter pairs for specific languages. The extension automatically reads delimiter configuration from language extensions, but you can override or extend them here.
 
 **Example**:
 ```json
 {
   "paredit.customDelimiters": {
-    "html": ["<", ">"],
-    "xml": ["<", ">"]
+    "html": [
+      {"open": "<", "close": ">"},
+      {"open": "(", "close": ")"}
+    ]
   }
 }
 ```
+
+**Note**: The default delimiters `()`, `[]`, `{}`, and `""` are used when no language-specific configuration is found.
 
 ### `paredit.killAlsoCutsToClipboard`
 
@@ -465,9 +370,7 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
    - Run "Preferences: Open Settings (JSON)"
    - Verify your language is listed in `paredit.enabledLanguages`
    
-2. Check the status bar - you should see a paredit indicator when the extension is active
-
-3. Verify the `paredit.isActive` context:
+2. Verify the `paredit.isActive` context:
    - Open Command Palette
    - Run "Developer: Inspect Context Keys"
    - Look for `paredit.isActive` - it should be `true`
@@ -477,20 +380,14 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
 **Problem**: Paredit keybindings conflict with other extensions or VS Code defaults.
 
 **Solutions**:
-1. Disable vim mode if H, J, K, L keybindings conflict:
-   ```json
-   {
-     "paredit.vimMode": false
-   }
-   ```
 
-2. Customize keybindings:
+1. Customize keybindings:
    - Open Command Palette (`Ctrl+Shift+P`)
    - Run "Preferences: Open Keyboard Shortcuts"
    - Search for "paredit"
    - Click on any command and press your preferred key combination
 
-3. Remove conflicting keybindings from other extensions in `keybindings.json`
+2. Remove conflicting keybindings from other extensions in `keybindings.json`
 
 ### Unbalanced Delimiters
 
@@ -526,20 +423,6 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
    - Open Command Palette
    - Run "Developer: Reload Window"
 
-### Performance Issues
-
-**Problem**: The extension is slow with large files.
-
-**Solutions**:
-1. The extension caches tokenization results, but very large files (10,000+ lines) may experience some delay
-2. Consider splitting large files into smaller modules
-3. Disable multi-cursor mode if not needed:
-   ```json
-   {
-     "paredit.multicursor": false
-   }
-   ```
-
 ### Commands Behave Unexpectedly
 
 **Problem**: Slurp, barf, or other commands don't do what I expect.
@@ -554,43 +437,45 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
 
 3. Review the command descriptions in the Keybindings section above
 
-### Integration Test Issues
+### Racket Expression Comments Behave Unexpectedly
 
-**Problem**: Integration tests fail or timeout.
+**Problem**: Racket expression comments via `#;` may cause problems. As a workaround, it may help to put the commented expression on another line.
 
-**Solutions**:
-1. Ensure you've compiled the tests:
-   ```bash
-   npm run compile:tests
-   ```
+For example:
 
-2. Check that VS Code can download (requires internet connection):
-   - VS Code is downloaded to `.vscode-test/` directory
-   - Downloaded from `https://update.code.visualstudio.com/`
+```racket
+(foo
+ #;(bar
+    baz)
+ boo)
+```
 
-3. On Linux, ensure Xvfb is available for headless testing:
-   ```bash
-   sudo apt-get install xvfb
-   ```
+The `#;` gets interpreted as a line comment, so paredit will ignore the open-paren before `bar`. The close-paren after `baz` will be seen as the matching closer for the first open paren before `foo`.
 
-4. If you see "No language extension found" warnings:
-   - This is expected for optional extensions (like Racket)
-   - Tests will still pass using default delimiters
-   - JavaScript/TypeScript tests always work (built-in)
+**Solution**: To avoid this issue, put the commented expression on the next line:
+
+```racket
+(foo
+ #;
+ (bar
+  baz)
+ boo)
+```
 
 ### Getting Help
 
-If you encounter issues not covered here:
-
 1. Check the [GitHub Issues](https://github.com/your-repo/paredit/issues) for similar problems
 2. Enable extension logging:
-   - Open Output panel (`Ctrl+Shift+U`)
+   - Open Output panel (`Ctrl+Shift+U` or `Cmd+Shift+U` on Mac)
    - Select "Paredit" from the dropdown
-3. Report bugs with:
+3. Check your configuration settings
+4. Try reloading the VS Code window (`Developer: Reload Window` from Command Palette)
+5. Report bugs with:
    - Your VS Code version
    - Extension version
    - Language you're using
    - Minimal code example that reproduces the issue
+   - Extension logs
 
 ## Development
 
@@ -608,88 +493,26 @@ npm run compile
 
 ### Test
 
-Run unit tests (fast, ~1 second):
 ```bash
+# Run unit tests
 npm run test:unit
-```
 
-Run integration tests (slower, ~4 seconds):
-```bash
+# Run integration tests
 npm run test:integration
-```
 
-Run all tests:
-```bash
+# Run all tests
 npm run test:all
-```
 
-Run tests in watch mode:
-```bash
+# Run tests in watch mode
 npm run test:watch
-```
 
-Generate coverage report:
-```bash
+# Generate coverage report
 npm run test:coverage
 ```
 
-#### Test Structure
-
-The project uses two test systems:
-
-**Unit Tests** (Jest, in `tests/` directory):
-- `tests/lexer.test.ts` - Lexer and tokenization tests
-- `tests/token-cursor.test.ts` - Token cursor navigation tests
-- `tests/model.test.ts` - Line input model tests
-- `tests/config.test.ts` - Configuration tests
-- `tests/delimiters.test.ts` - Delimiter configuration tests
-- `tests/extension.test.ts` - Extension activation tests
-- Fast execution (~1 second), no VS Code dependency
-
-**Integration Tests** (Mocha, in `tests/integration/` directory):
-- `tests/integration/suite/paredit-integration.test.ts` - All paredit operations with real VS Code documents
-- `tests/integration/suite/test-helpers.test.ts` - Test helper function tests
-- Tests real VS Code integration with actual language extensions
-- Uses cursor notation for easy test writing (e.g., `"(foo bar|) baz"`)
-- Slower execution (~4 seconds), requires VS Code test environment
-
-#### Adding New Integration Tests
-
-Integration tests use cursor notation for concise test syntax. Here's how to add a new test:
-
-```typescript
-import * as assert from 'assert';
-import { createDocumentWithCursor, getDocumentWithCursor, closeDocument } from './test-helpers';
-
-describe('My Feature', () => {
-  it('should do something', async () => {
-    // Create document with cursor at position marked by "|"
-    const { editor, doc } = await createDocumentWithCursor("|(foo bar)", 'javascript');
-    
-    // Perform operations using EditableDocument
-    const model = doc.getModel();
-    
-    // Verify results using cursor notation
-    assert.strictEqual(getDocumentWithCursor(editor), '|(foo bar)');
-    
-    // Always clean up
-    await closeDocument();
-  });
-});
-```
-
-**Key points:**
-- Use `"|"` to mark cursor positions in test strings
-- `createDocumentWithCursor()` returns an `EditableDocument` (our existing class)
-- `getDocumentWithCursor()` formats the current state with cursor notation
-- Always call `closeDocument()` after each test
-- Supports multiple cursors: `"(|foo) (|bar)"`
-
-See `tests/integration/README.md` for detailed documentation.
-
 ### Run Extension
 
-Press F5 in VS Code to open a new window with the extension loaded.
+Press `F5` in VS Code to open a new Extension Development Host window with the extension loaded.
 
 ## License
 
