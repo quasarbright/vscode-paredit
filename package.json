@@ -530,7 +530,9 @@
     ]
   },
   "scripts": {
+    "build": "npm run package-extension",
     "vscode:prepublish": "npm run compile",
+    "package-extension": "vsce package --allow-star-activation",
     "compile": "webpack --mode production",
     "watch": "webpack --mode development --watch",
     "test": "jest",
