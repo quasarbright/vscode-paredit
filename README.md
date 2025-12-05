@@ -270,39 +270,36 @@ You can customize these bindings to use different keys if `L` and `H` conflict w
 
 Configure the extension through VS Code settings (`Ctrl+,` or `Cmd+,` on Mac):
 
-### `paredit.enabledLanguages`
+### `paredit.disabledLanguages`
 
 **Type**: `array`  
-**Default**: `["javascript", "typescript", "json", "clojure", "lisp", "scheme", "racket"]`
+**Default**: `[]`
 
-List of language IDs where paredit commands are active. The extension automatically activates when you open files in these languages.
+List of language IDs where paredit commands are disabled. By default, paredit is enabled for all languages. Use this setting to exclude specific languages.
 
 **Example**:
 ```json
 {
-  "paredit.enabledLanguages": [
-    "javascript",
-    "typescript",
-    "json",
-    "python",
-    "clojure"
+  "paredit.disabledLanguages": [
+    "markdown",
+    "plaintext"
   ]
 }
 ```
 
 To find a language ID, open a file and run the command "Change Language Mode" (`Ctrl+K M`) to see the language identifier.
 
-### `paredit.enabledFileExtensions`
+### `paredit.disabledFileExtensions`
 
 **Type**: `array`  
 **Default**: `[]`
 
-Additional file extensions where paredit commands are active. Useful for custom file types or languages not recognized by VS Code.
+List of file extensions where paredit commands are disabled. By default, paredit is enabled for all file extensions. Use this setting to exclude specific file types.
 
 **Example**:
 ```json
 {
-  "paredit.enabledFileExtensions": [".lisp", ".scm", ".rkt", ".clj"]
+  "paredit.disabledFileExtensions": [".md", ".txt"]
 }
 ```
 
@@ -365,10 +362,11 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
 **Problem**: Paredit commands don't respond when I press the keybindings.
 
 **Solutions**:
-1. Check that your file's language is in `paredit.enabledLanguages`:
+1. Check that your file's language or extension is not disabled:
    - Open Command Palette (`Ctrl+Shift+P`)
    - Run "Preferences: Open Settings (JSON)"
-   - Verify your language is listed in `paredit.enabledLanguages`
+   - Verify your language is not in `paredit.disabledLanguages`
+   - Verify your file extension is not in `paredit.disabledFileExtensions`
    
 2. Verify the `paredit.isActive` context:
    - Open Command Palette
@@ -403,23 +401,18 @@ This ensures `#t`, `#f`, and other hash-prefixed identifiers work correctly in L
 **Problem**: The extension doesn't activate for my language.
 
 **Solutions**:
-1. Add your language ID to `paredit.enabledLanguages`:
+1. Check if your language or file extension is disabled:
    - Find your language ID by running "Change Language Mode" (`Ctrl+K M`)
-   - Add it to the settings:
+   - Remove it from `paredit.disabledLanguages` if present
+   - Check if your file extension is in `paredit.disabledFileExtensions` and remove it if present:
      ```json
      {
-       "paredit.enabledLanguages": ["javascript", "typescript", "your-language-id"]
+       "paredit.disabledLanguages": [],
+       "paredit.disabledFileExtensions": []
      }
      ```
 
-2. Alternatively, add your file extension to `paredit.enabledFileExtensions`:
-   ```json
-   {
-     "paredit.enabledFileExtensions": [".your-extension"]
-   }
-   ```
-
-3. Reload VS Code window:
+2. Reload VS Code window:
    - Open Command Palette
    - Run "Developer: Reload Window"
 

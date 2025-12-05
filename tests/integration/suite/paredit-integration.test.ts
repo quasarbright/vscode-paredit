@@ -716,6 +716,27 @@ suite('Paredit with Cursor Notation', () => {
       assert.strictEqual(sel.active, 7);
       await closeDocument();
     });
+
+    test('vim visual mode: anchor at 15, active at 16, then select forward up', async () => {
+      // This simulates Vim visual mode behavior for v):
+      // In the example: (define (f x y)|(displayln x)y)
+      // The cursor is at position 15 (the opening paren of (displayln x))
+      // When you press 'v' in Vim, it creates a selection from 15 to 16
+      const { doc } = await createDocumentWithCursor('(define (f x y)|(displayln x)y)');
+      
+      // Manually create a Vim-style selection: anchor=15, active=16
+      doc.selections = [new ModelEditSelection(15, 16)];
+      
+      selectForwardUpSexp(doc);
+      const sel = doc.selections[0];
+      
+      // Should select from position 15 to position 29 (before the final ")")
+      // This should include "(displayln x)y" but NOT the final ")"
+      assert.strictEqual(sel.anchor, 15);
+      assert.strictEqual(sel.active, 29);
+      assert.strictEqual(doc.getText(sel.start, sel.end), '(displayln x)y');
+      await closeDocument();
+    });
   });
 
   suite('selectBackwardUpSexp', () => {

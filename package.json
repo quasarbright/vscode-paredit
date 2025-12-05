@@ -27,25 +27,15 @@
     "configuration": {
       "title": "Paredit",
       "properties": {
-        "paredit.enabledLanguages": {
-          "type": "array",
-          "default": [
-            "javascript",
-            "javascriptreact",
-            "typescript",
-            "typescriptreact",
-            "json",
-            "clojure",
-            "lisp",
-            "scheme",
-            "racket"
-          ],
-          "description": "Language IDs where paredit commands are active. Default: javascript, typescript, json, clojure, lisp, scheme, racket"
-        },
-        "paredit.enabledFileExtensions": {
+        "paredit.disabledLanguages": {
           "type": "array",
           "default": [],
-          "description": "File extensions where paredit commands are active (e.g., ['.lisp', '.scm']). Default: none (uses language IDs only)"
+          "description": "Language IDs where paredit commands are disabled. All languages are enabled by default. Example: [\"markdown\", \"plaintext\"]"
+        },
+        "paredit.disabledFileExtensions": {
+          "type": "array",
+          "default": [],
+          "description": "File extensions where paredit commands are disabled. All file extensions are enabled by default. Example: [\".md\", \".txt\"]"
         },
         "paredit.customDelimiters": {
           "type": "object",
@@ -172,8 +162,24 @@
             ],
             "html": [
               {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
                 "open": "\"",
                 "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
               },
               {
                 "open": "<",
@@ -182,12 +188,994 @@
             ],
             "xml": [
               {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
                 "open": "\"",
                 "close": "\""
               },
               {
+                "open": "'",
+                "close": "'"
+              },
+              {
                 "open": "<",
                 "close": ">"
+              }
+            ],
+            "vue": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "svelte": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "rust": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              },
+              {
+                "open": "|",
+                "close": "|"
+              }
+            ],
+            "haskell": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "⟨",
+                "close": "⟩"
+              }
+            ],
+            "ocaml": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "(*",
+                "close": "*)"
+              },
+              {
+                "open": "[|",
+                "close": "|]"
+              },
+              {
+                "open": "{<",
+                "close": ">}"
+              }
+            ],
+            "fsharp": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "(*",
+                "close": "*)"
+              },
+              {
+                "open": "[|",
+                "close": "|]"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "erlang": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<<",
+                "close": ">>"
+              }
+            ],
+            "elixir": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<<",
+                "close": ">>"
+              }
+            ],
+            "latex": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "\\{",
+                "close": "\\}"
+              },
+              {
+                "open": "\\[",
+                "close": "\\]"
+              },
+              {
+                "open": "\\(",
+                "close": "\\)"
+              }
+            ],
+            "tex": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "\\{",
+                "close": "\\}"
+              },
+              {
+                "open": "\\[",
+                "close": "\\]"
+              },
+              {
+                "open": "\\(",
+                "close": "\\)"
+              }
+            ],
+            "racket": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "#|",
+                "close": "|#"
+              }
+            ],
+            "scheme": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "#|",
+                "close": "|#"
+              }
+            ],
+            "clojure": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "#{",
+                "close": "}"
+              }
+            ],
+            "lisp": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "#|",
+                "close": "|#"
+              }
+            ],
+            "scala": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "kotlin": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "swift": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "dart": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "cpp": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "c": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "csharp": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "go": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
+            ],
+            "ruby": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "|",
+                "close": "|"
+              }
+            ],
+            "perl": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "php": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "r": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
+            ],
+            "julia": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "⟨",
+                "close": "⟩"
+              }
+            ],
+            "lua": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "[[",
+                "close": "]]"
+              }
+            ],
+            "groovy": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<",
+                "close": ">"
+              }
+            ],
+            "powershell": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "<#",
+                "close": "#>"
+              }
+            ],
+            "shellscript": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
+            ],
+            "bash": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
+            ],
+            "zsh": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "`",
+                "close": "`"
+              }
+            ],
+            "fish": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              }
+            ],
+            "nim": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "\"\"\"",
+                "close": "\"\"\""
+              }
+            ],
+            "zig": [
+              {
+                "open": "(",
+                "close": ")"
+              },
+              {
+                "open": "[",
+                "close": "]"
+              },
+              {
+                "open": "{",
+                "close": "}"
+              },
+              {
+                "open": "\"",
+                "close": "\""
+              },
+              {
+                "open": "'",
+                "close": "'"
+              },
+              {
+                "open": "\\\\",
+                "close": "\n"
+              }
+            ],
+            "markdown": [
+              {
+                "open": "`",
+                "close": "`"
+              },
+              {
+                "open": "\\(",
+                "close": "\\)"
+              },
+              {
+                "open": "\\[",
+                "close": "\\]"
               }
             ]
           },

@@ -402,7 +402,16 @@ export function selectBackwardSexp(doc: EditableDocument): void {
 export function selectForwardUpSexp(doc: EditableDocument): void {
   const selections = doc.selections;
   const newSelections = selections.map(sel => {
-    const [_, end] = rangeToForwardUpList(doc, sel.active);
+    let startPos = sel.active;
+    
+    // Handle Vim visual mode: when anchor and active are adjacent (visual mode just started),
+    // we need to adjust the starting position back by 1
+    if (!sel.isCursor && Math.abs(sel.active - sel.anchor) === 1 && sel.active > sel.anchor) {
+      // Visual mode with active one position ahead of anchor
+      startPos = sel.active - 1;
+    }
+    
+    const [_, end] = rangeToForwardUpList(doc, startPos);
     return new (sel.constructor as any)(sel.anchor, end);
   });
   

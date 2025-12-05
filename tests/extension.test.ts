@@ -2,6 +2,8 @@
  * Extension activation tests
  */
 
+/// <reference types="jest" />
+
 // Mock vscode module
 const mockRegisterCommand = jest.fn(() => ({ dispose: jest.fn() }));
 const mockExecuteCommand = jest.fn();

@@ -6,8 +6,8 @@ export interface DelimiterPair {
 }
 
 export interface PareditConfig {
-  enabledLanguages: string[];
-  enabledFileExtensions: string[];
+  disabledLanguages: string[];
+  disabledFileExtensions: string[];
   customDelimiters: Record<string, DelimiterPair[]>;
   killAlsoCutsToClipboard: boolean;
 }
@@ -33,16 +33,8 @@ export function getConfig(): PareditConfig {
   const config = vscode.workspace.getConfiguration('paredit');
   
   return {
-    enabledLanguages: config.get<string[]>('enabledLanguages', [
-      'javascript',
-      'typescript',
-      'json',
-      'clojure',
-      'lisp',
-      'scheme',
-      'racket'
-    ]),
-    enabledFileExtensions: config.get<string[]>('enabledFileExtensions', []),
+    disabledLanguages: config.get<string[]>('disabledLanguages', []),
+    disabledFileExtensions: config.get<string[]>('disabledFileExtensions', []),
     customDelimiters: config.get<Record<string, DelimiterPair[]>>('customDelimiters', {}),
     killAlsoCutsToClipboard: config.get<boolean>('killAlsoCutsToClipboard', true)
   };
@@ -54,18 +46,25 @@ export function getConfig(): PareditConfig {
 export function isLanguageEnabled(document: vscode.TextDocument): boolean {
   const config = getConfig();
   
-  // Check if language ID matches
-  if (config.enabledLanguages.includes(document.languageId)) {
-    return true;
-  }
-  
-  // Check if file extension matches
+  // Check if file extension is disabled (takes priority)
   const fileName = document.fileName;
-  return config.enabledFileExtensions.some(ext => {
+  const hasDisabledExtension = config.disabledFileExtensions.some(ext => {
     // Ensure extension starts with a dot
     const normalizedExt = ext.startsWith('.') ? ext : '.' + ext;
     return fileName.endsWith(normalizedExt);
   });
+  
+  if (hasDisabledExtension) {
+    return false;
+  }
+  
+  // Check if language is disabled
+  if (config.disabledLanguages.includes(document.languageId)) {
+    return false;
+  }
+  
+  // All languages are enabled by default
+  return true;
 }
 
 /**
