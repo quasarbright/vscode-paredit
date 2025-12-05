@@ -2,7 +2,7 @@
   "name": "paredit",
   "displayName": "Mike's Paredit",
   "description": "Structural S-Expression editing with Paredit commands",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "MikeDelmonaco",
   "repository": {
     "url": "https://github.com/quasarbright/vscode-paredit",
